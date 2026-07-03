@@ -74,7 +74,7 @@ export class AiUsageService {
         $expr: { $lte: [{ $add: ['$used', '$reserved', estimatedTokens] }, dailyBudget] },
       },
       { $inc: { reserved: estimatedTokens } },
-      { new: true },
+      { returnDocument: 'after' },
     );
 
     if (!reserved) {

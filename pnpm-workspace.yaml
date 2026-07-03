@@ -28,9 +28,8 @@ catalog:
   '@vitejs/plugin-react': ^6.0.3
   '@tanstack/react-router': ^1.170.17
   '@tanstack/router-plugin': ^1.168.19
-  '@tanstack/react-router-devtools': ^1.170.17
+  '@tanstack/router-cli': ^1.167.18
   '@tanstack/react-query': ^5.101.2
-  '@tanstack/react-query-devtools': ^5.101.2
   '@tanstack/react-form': ^1.33.0
   tailwindcss: ^4.3.2
   '@tailwindcss/vite': ^4.3.2
@@ -135,3 +134,5 @@ minimumReleaseAgeExclude:
   - '@ai-sdk/provider-utils@5.0.5'
   - '@ai-sdk/provider@4.0.2'
   - ai@7.0.14
+  - '@ai-sdk/mcp@2.0.7'
+  - '@ai-sdk/react@4.0.15'

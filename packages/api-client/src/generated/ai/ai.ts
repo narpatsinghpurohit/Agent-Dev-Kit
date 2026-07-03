@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery,
   useSuspenseQuery
 } from '@tanstack/react-query';
@@ -13,10 +14,13 @@ import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
   UseSuspenseQueryOptions,
@@ -52,18 +56,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type chatStreamResponse201 = {
-  data: void
-  status: 201
-}
-
-export type chatStreamResponseSuccess = (chatStreamResponse201) & {
-  headers: Headers;
-};
-;
-
-export type chatStreamResponse = (chatStreamResponseSuccess)
-
 export const getChatStreamUrl = () => {
 
 
@@ -75,9 +67,9 @@ export const getChatStreamUrl = () => {
 /**
  * @summary Copilot chat stream (AI SDK UI-message SSE protocol — not plain JSON)
  */
-export const chatStream = async (chatRequestDto: ChatRequestDto, options?: RequestInit): Promise<chatStreamResponse> => {
+export const chatStream = async (chatRequestDto: ChatRequestDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<chatStreamResponse>(getChatStreamUrl(),
+  return customFetch<void>(getChatStreamUrl(),
   {
     ...options,
     method: 'POST',
@@ -90,93 +82,51 @@ export const chatStream = async (chatRequestDto: ChatRequestDto, options?: Reque
 
 
 
-export const getChatStreamQueryKey = (chatRequestDto?: ChatRequestDto,) => {
-    return [
-    'POST', `/api/ai/chat`, chatRequestDto
-    ] as const;
-    }
+export const getChatStreamMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatStream>>, TError,{data: ChatRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof chatStream>>, TError,{data: ChatRequestDto}, TContext> => {
 
-
-export const getChatStreamQueryOptions = <TData = Awaited<ReturnType<typeof chatStream>>, TError = unknown>(chatRequestDto: ChatRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getChatStreamQueryKey(chatRequestDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatStream>>> = ({ signal }) => chatStream(chatRequestDto, { signal, ...requestOptions });
+const mutationKey = ['chatStream'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof chatStream>>, {data: ChatRequestDto}> = (props) => {
+          const {data} = props ?? {};
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ChatStreamQueryResult = NonNullable<Awaited<ReturnType<typeof chatStream>>>
-export type ChatStreamQueryError = unknown
+          return  chatStream(data,requestOptions)
+        }
 
 
-export function useChatStream<TData = Awaited<ReturnType<typeof chatStream>>, TError = unknown>(
- chatRequestDto: ChatRequestDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof chatStream>>,
-          TError,
-          Awaited<ReturnType<typeof chatStream>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatStream<TData = Awaited<ReturnType<typeof chatStream>>, TError = unknown>(
- chatRequestDto: ChatRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof chatStream>>,
-          TError,
-          Awaited<ReturnType<typeof chatStream>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useChatStream<TData = Awaited<ReturnType<typeof chatStream>>, TError = unknown>(
- chatRequestDto: ChatRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChatStreamMutationResult = NonNullable<Awaited<ReturnType<typeof chatStream>>>
+    export type ChatStreamMutationBody = ChatRequestDto
+    export type ChatStreamMutationError = unknown
+
+    /**
  * @summary Copilot chat stream (AI SDK UI-message SSE protocol — not plain JSON)
  */
-
-export function useChatStream<TData = Awaited<ReturnType<typeof chatStream>>, TError = unknown>(
- chatRequestDto: ChatRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof chatStream>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getChatStreamQueryOptions(chatRequestDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type chatConversationsResponse200 = {
-  data: void
-  status: 200
-}
-
-export type chatConversationsResponseSuccess = (chatConversationsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type chatConversationsResponse = (chatConversationsResponseSuccess)
-
-export const getChatConversationsUrl = () => {
+export const useChatStream = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof chatStream>>, TError,{data: ChatRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof chatStream>>,
+        TError,
+        {data: ChatRequestDto},
+        TContext
+      > => {
+      return useMutation(getChatStreamMutationOptions(options), queryClient);
+    }
+    export const getChatConversationsUrl = () => {
 
 
 
@@ -184,9 +134,9 @@ export const getChatConversationsUrl = () => {
   return `/api/ai/conversations`
 }
 
-export const chatConversations = async ( options?: RequestInit): Promise<chatConversationsResponse> => {
+export const chatConversations = async ( options?: RequestInit): Promise<void> => {
 
-  return customFetch<chatConversationsResponse>(getChatConversationsUrl(),
+  return customFetch<void>(getChatConversationsUrl(),
   {
     ...options,
     method: 'GET'
@@ -322,18 +272,6 @@ export function useChatConversationsSuspense<TData = Awaited<ReturnType<typeof c
 
 
 
-export type chatMessagesResponse200 = {
-  data: void
-  status: 200
-}
-
-export type chatMessagesResponseSuccess = (chatMessagesResponse200) & {
-  headers: Headers;
-};
-;
-
-export type chatMessagesResponse = (chatMessagesResponseSuccess)
-
 export const getChatMessagesUrl = (id: string,) => {
 
 
@@ -345,9 +283,9 @@ export const getChatMessagesUrl = (id: string,) => {
 /**
  * @summary Stored UIMessages for resuming a conversation
  */
-export const chatMessages = async (id: string, options?: RequestInit): Promise<chatMessagesResponse> => {
+export const chatMessages = async (id: string, options?: RequestInit): Promise<void> => {
 
-  return customFetch<chatMessagesResponse>(getChatMessagesUrl(id),
+  return customFetch<void>(getChatMessagesUrl(id),
   {
     ...options,
     method: 'GET'
@@ -489,18 +427,6 @@ export function useChatMessagesSuspense<TData = Awaited<ReturnType<typeof chatMe
 
 
 
-export type chatModelsResponse200 = {
-  data: void
-  status: 200
-}
-
-export type chatModelsResponseSuccess = (chatModelsResponse200) & {
-  headers: Headers;
-};
-;
-
-export type chatModelsResponse = (chatModelsResponseSuccess)
-
 export const getChatModelsUrl = () => {
 
 
@@ -512,9 +438,9 @@ export const getChatModelsUrl = () => {
 /**
  * @summary Which model serves each AI feature (public metadata)
  */
-export const chatModels = async ( options?: RequestInit): Promise<chatModelsResponse> => {
+export const chatModels = async ( options?: RequestInit): Promise<void> => {
 
-  return customFetch<chatModelsResponse>(getChatModelsUrl(),
+  return customFetch<void>(getChatModelsUrl(),
   {
     ...options,
     method: 'GET'
@@ -656,18 +582,6 @@ export function useChatModelsSuspense<TData = Awaited<ReturnType<typeof chatMode
 
 
 
-export type speechTranscribeResponse201 = {
-  data: TranscribeResponseDtoOutput
-  status: 201
-}
-
-export type speechTranscribeResponseSuccess = (speechTranscribeResponse201) & {
-  headers: Headers;
-};
-;
-
-export type speechTranscribeResponse = (speechTranscribeResponseSuccess)
-
 export const getSpeechTranscribeUrl = () => {
 
 
@@ -676,11 +590,11 @@ export const getSpeechTranscribeUrl = () => {
   return `/api/ai/transcribe`
 }
 
-export const speechTranscribe = async (speechTranscribeBody: SpeechTranscribeBody, options?: RequestInit): Promise<speechTranscribeResponse> => {
+export const speechTranscribe = async (speechTranscribeBody: SpeechTranscribeBody, options?: RequestInit): Promise<TranscribeResponseDtoOutput> => {
     const formData = new FormData();
 formData.append(`audio`, speechTranscribeBody.audio);
 
-  return customFetch<speechTranscribeResponse>(getSpeechTranscribeUrl(),
+  return customFetch<TranscribeResponseDtoOutput>(getSpeechTranscribeUrl(),
   {
     ...options,
     method: 'POST'
@@ -693,90 +607,48 @@ formData.append(`audio`, speechTranscribeBody.audio);
 
 
 
-export const getSpeechTranscribeQueryKey = (speechTranscribeBody?: SpeechTranscribeBody,) => {
-    return [
-    'POST', `/api/ai/transcribe`, speechTranscribeBody
-    ] as const;
+export const getSpeechTranscribeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError,{data: SpeechTranscribeBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError,{data: SpeechTranscribeBody}, TContext> => {
+
+const mutationKey = ['speechTranscribe'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof speechTranscribe>>, {data: SpeechTranscribeBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  speechTranscribe(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SpeechTranscribeMutationResult = NonNullable<Awaited<ReturnType<typeof speechTranscribe>>>
+    export type SpeechTranscribeMutationBody = SpeechTranscribeBody
+    export type SpeechTranscribeMutationError = unknown
+
+    export const useSpeechTranscribe = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError,{data: SpeechTranscribeBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof speechTranscribe>>,
+        TError,
+        {data: SpeechTranscribeBody},
+        TContext
+      > => {
+      return useMutation(getSpeechTranscribeMutationOptions(options), queryClient);
     }
-
-
-export const getSpeechTranscribeQueryOptions = <TData = Awaited<ReturnType<typeof speechTranscribe>>, TError = unknown>(speechTranscribeBody: SpeechTranscribeBody, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getSpeechTranscribeQueryKey(speechTranscribeBody);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof speechTranscribe>>> = ({ signal }) => speechTranscribe(speechTranscribeBody, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SpeechTranscribeQueryResult = NonNullable<Awaited<ReturnType<typeof speechTranscribe>>>
-export type SpeechTranscribeQueryError = unknown
-
-
-export function useSpeechTranscribe<TData = Awaited<ReturnType<typeof speechTranscribe>>, TError = unknown>(
- speechTranscribeBody: SpeechTranscribeBody, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof speechTranscribe>>,
-          TError,
-          Awaited<ReturnType<typeof speechTranscribe>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSpeechTranscribe<TData = Awaited<ReturnType<typeof speechTranscribe>>, TError = unknown>(
- speechTranscribeBody: SpeechTranscribeBody, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof speechTranscribe>>,
-          TError,
-          Awaited<ReturnType<typeof speechTranscribe>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSpeechTranscribe<TData = Awaited<ReturnType<typeof speechTranscribe>>, TError = unknown>(
- speechTranscribeBody: SpeechTranscribeBody, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useSpeechTranscribe<TData = Awaited<ReturnType<typeof speechTranscribe>>, TError = unknown>(
- speechTranscribeBody: SpeechTranscribeBody, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTranscribe>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getSpeechTranscribeQueryOptions(speechTranscribeBody,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type speechTtsResponse201 = {
-  data: void
-  status: 201
-}
-
-export type speechTtsResponseSuccess = (speechTtsResponse201) & {
-  headers: Headers;
-};
-;
-
-export type speechTtsResponse = (speechTtsResponseSuccess)
-
-export const getSpeechTtsUrl = () => {
+    export const getSpeechTtsUrl = () => {
 
 
 
@@ -787,9 +659,9 @@ export const getSpeechTtsUrl = () => {
 /**
  * @summary Text to speech — returns audio/wav bytes
  */
-export const speechTts = async (ttsRequestDto: TtsRequestDto, options?: RequestInit): Promise<speechTtsResponse> => {
+export const speechTts = async (ttsRequestDto: TtsRequestDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<speechTtsResponse>(getSpeechTtsUrl(),
+  return customFetch<void>(getSpeechTtsUrl(),
   {
     ...options,
     method: 'POST',
@@ -802,77 +674,47 @@ export const speechTts = async (ttsRequestDto: TtsRequestDto, options?: RequestI
 
 
 
-export const getSpeechTtsQueryKey = (ttsRequestDto?: TtsRequestDto,) => {
-    return [
-    'POST', `/api/ai/tts`, ttsRequestDto
-    ] as const;
-    }
+export const getSpeechTtsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof speechTts>>, TError,{data: TtsRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof speechTts>>, TError,{data: TtsRequestDto}, TContext> => {
 
-
-export const getSpeechTtsQueryOptions = <TData = Awaited<ReturnType<typeof speechTts>>, TError = unknown>(ttsRequestDto: TtsRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getSpeechTtsQueryKey(ttsRequestDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof speechTts>>> = ({ signal }) => speechTts(ttsRequestDto, { signal, ...requestOptions });
+const mutationKey = ['speechTts'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof speechTts>>, {data: TtsRequestDto}> = (props) => {
+          const {data} = props ?? {};
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type SpeechTtsQueryResult = NonNullable<Awaited<ReturnType<typeof speechTts>>>
-export type SpeechTtsQueryError = unknown
+          return  speechTts(data,requestOptions)
+        }
 
 
-export function useSpeechTts<TData = Awaited<ReturnType<typeof speechTts>>, TError = unknown>(
- ttsRequestDto: TtsRequestDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof speechTts>>,
-          TError,
-          Awaited<ReturnType<typeof speechTts>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSpeechTts<TData = Awaited<ReturnType<typeof speechTts>>, TError = unknown>(
- ttsRequestDto: TtsRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof speechTts>>,
-          TError,
-          Awaited<ReturnType<typeof speechTts>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSpeechTts<TData = Awaited<ReturnType<typeof speechTts>>, TError = unknown>(
- ttsRequestDto: TtsRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SpeechTtsMutationResult = NonNullable<Awaited<ReturnType<typeof speechTts>>>
+    export type SpeechTtsMutationBody = TtsRequestDto
+    export type SpeechTtsMutationError = unknown
+
+    /**
  * @summary Text to speech — returns audio/wav bytes
  */
-
-export function useSpeechTts<TData = Awaited<ReturnType<typeof speechTts>>, TError = unknown>(
- ttsRequestDto: TtsRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof speechTts>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getSpeechTtsQueryOptions(ttsRequestDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
+export const useSpeechTts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof speechTts>>, TError,{data: TtsRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof speechTts>>,
+        TError,
+        {data: TtsRequestDto},
+        TContext
+      > => {
+      return useMutation(getSpeechTtsMutationOptions(options), queryClient);
+    }

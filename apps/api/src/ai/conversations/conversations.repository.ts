@@ -20,7 +20,7 @@ export class ConversationsRepository {
       .findOneAndUpdate(
         { _id: id, userId },
         { $setOnInsert: { _id: id, userId, title } },
-        { new: true, upsert: true },
+        { returnDocument: 'after', upsert: true },
       )
       .lean();
   }

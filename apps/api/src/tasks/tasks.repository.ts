@@ -75,7 +75,7 @@ export class TasksRepository {
           ...(Object.keys($set).length && { $set }),
           ...(Object.keys($unset).length && { $unset }),
         },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .lean();
   }

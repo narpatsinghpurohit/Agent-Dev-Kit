@@ -21,8 +21,13 @@ export default defineConfig({
           path: './src/http/custom-fetch.ts',
           name: 'customFetch',
         },
+        // customFetch returns the parsed body, not a {data,status} envelope.
+        fetch: {
+          includeHttpResponseReturnType: false,
+        },
+        // NOTE: never set `useQuery: true` here — it forces POST/PATCH/DELETE
+        // into useQuery hooks instead of useMutation.
         query: {
-          useQuery: true,
           useSuspenseQuery: true,
           useInfinite: true,
           useInfiniteQueryParam: 'cursor',

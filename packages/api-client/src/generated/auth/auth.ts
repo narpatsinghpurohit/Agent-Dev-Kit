@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery,
   useSuspenseQuery
 } from '@tanstack/react-query';
@@ -13,10 +14,13 @@ import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
   UseSuspenseQueryOptions,
@@ -57,18 +61,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type authSignupResponse201 = {
-  data: AuthResponseDtoOutput
-  status: 201
-}
-
-export type authSignupResponseSuccess = (authSignupResponse201) & {
-  headers: Headers;
-};
-;
-
-export type authSignupResponse = (authSignupResponseSuccess)
-
 export const getAuthSignupUrl = () => {
 
 
@@ -77,9 +69,9 @@ export const getAuthSignupUrl = () => {
   return `/api/auth/signup`
 }
 
-export const authSignup = async (signupDto: SignupDto, options?: RequestInit): Promise<authSignupResponse> => {
+export const authSignup = async (signupDto: SignupDto, options?: RequestInit): Promise<AuthResponseDtoOutput> => {
 
-  return customFetch<authSignupResponse>(getAuthSignupUrl(),
+  return customFetch<AuthResponseDtoOutput>(getAuthSignupUrl(),
   {
     ...options,
     method: 'POST',
@@ -92,90 +84,48 @@ export const authSignup = async (signupDto: SignupDto, options?: RequestInit): P
 
 
 
-export const getAuthSignupQueryKey = (signupDto?: SignupDto,) => {
-    return [
-    'POST', `/api/auth/signup`, signupDto
-    ] as const;
+export const getAuthSignupMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,{data: SignupDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,{data: SignupDto}, TContext> => {
+
+const mutationKey = ['authSignup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authSignup>>, {data: SignupDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authSignup(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthSignupMutationResult = NonNullable<Awaited<ReturnType<typeof authSignup>>>
+    export type AuthSignupMutationBody = SignupDto
+    export type AuthSignupMutationError = unknown
+
+    export const useAuthSignup = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authSignup>>, TError,{data: SignupDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authSignup>>,
+        TError,
+        {data: SignupDto},
+        TContext
+      > => {
+      return useMutation(getAuthSignupMutationOptions(options), queryClient);
     }
-
-
-export const getAuthSignupQueryOptions = <TData = Awaited<ReturnType<typeof authSignup>>, TError = unknown>(signupDto: SignupDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthSignupQueryKey(signupDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authSignup>>> = ({ signal }) => authSignup(signupDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthSignupQueryResult = NonNullable<Awaited<ReturnType<typeof authSignup>>>
-export type AuthSignupQueryError = unknown
-
-
-export function useAuthSignup<TData = Awaited<ReturnType<typeof authSignup>>, TError = unknown>(
- signupDto: SignupDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authSignup>>,
-          TError,
-          Awaited<ReturnType<typeof authSignup>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthSignup<TData = Awaited<ReturnType<typeof authSignup>>, TError = unknown>(
- signupDto: SignupDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authSignup>>,
-          TError,
-          Awaited<ReturnType<typeof authSignup>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthSignup<TData = Awaited<ReturnType<typeof authSignup>>, TError = unknown>(
- signupDto: SignupDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthSignup<TData = Awaited<ReturnType<typeof authSignup>>, TError = unknown>(
- signupDto: SignupDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authSignup>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthSignupQueryOptions(signupDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authLoginResponse200 = {
-  data: AuthResponseDtoOutput
-  status: 200
-}
-
-export type authLoginResponseSuccess = (authLoginResponse200) & {
-  headers: Headers;
-};
-;
-
-export type authLoginResponse = (authLoginResponseSuccess)
-
-export const getAuthLoginUrl = () => {
+    export const getAuthLoginUrl = () => {
 
 
 
@@ -183,9 +133,9 @@ export const getAuthLoginUrl = () => {
   return `/api/auth/login`
 }
 
-export const authLogin = async (loginDto: LoginDto, options?: RequestInit): Promise<authLoginResponse> => {
+export const authLogin = async (loginDto: LoginDto, options?: RequestInit): Promise<AuthResponseDtoOutput> => {
 
-  return customFetch<authLoginResponse>(getAuthLoginUrl(),
+  return customFetch<AuthResponseDtoOutput>(getAuthLoginUrl(),
   {
     ...options,
     method: 'POST',
@@ -198,90 +148,48 @@ export const authLogin = async (loginDto: LoginDto, options?: RequestInit): Prom
 
 
 
-export const getAuthLoginQueryKey = (loginDto?: LoginDto,) => {
-    return [
-    'POST', `/api/auth/login`, loginDto
-    ] as const;
+export const getAuthLoginMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,{data: LoginDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,{data: LoginDto}, TContext> => {
+
+const mutationKey = ['authLogin'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authLogin>>, {data: LoginDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authLogin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof authLogin>>>
+    export type AuthLoginMutationBody = LoginDto
+    export type AuthLoginMutationError = unknown
+
+    export const useAuthLogin = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogin>>, TError,{data: LoginDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authLogin>>,
+        TError,
+        {data: LoginDto},
+        TContext
+      > => {
+      return useMutation(getAuthLoginMutationOptions(options), queryClient);
     }
-
-
-export const getAuthLoginQueryOptions = <TData = Awaited<ReturnType<typeof authLogin>>, TError = unknown>(loginDto: LoginDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthLoginQueryKey(loginDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authLogin>>> = ({ signal }) => authLogin(loginDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthLoginQueryResult = NonNullable<Awaited<ReturnType<typeof authLogin>>>
-export type AuthLoginQueryError = unknown
-
-
-export function useAuthLogin<TData = Awaited<ReturnType<typeof authLogin>>, TError = unknown>(
- loginDto: LoginDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authLogin>>,
-          TError,
-          Awaited<ReturnType<typeof authLogin>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthLogin<TData = Awaited<ReturnType<typeof authLogin>>, TError = unknown>(
- loginDto: LoginDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authLogin>>,
-          TError,
-          Awaited<ReturnType<typeof authLogin>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthLogin<TData = Awaited<ReturnType<typeof authLogin>>, TError = unknown>(
- loginDto: LoginDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthLogin<TData = Awaited<ReturnType<typeof authLogin>>, TError = unknown>(
- loginDto: LoginDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogin>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthLoginQueryOptions(loginDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authRefreshResponse200 = {
-  data: AuthResponseDtoOutput
-  status: 200
-}
-
-export type authRefreshResponseSuccess = (authRefreshResponse200) & {
-  headers: Headers;
-};
-;
-
-export type authRefreshResponse = (authRefreshResponseSuccess)
-
-export const getAuthRefreshUrl = () => {
+    export const getAuthRefreshUrl = () => {
 
 
 
@@ -289,9 +197,9 @@ export const getAuthRefreshUrl = () => {
   return `/api/auth/refresh`
 }
 
-export const authRefresh = async (refreshRequestDto: RefreshRequestDto, options?: RequestInit): Promise<authRefreshResponse> => {
+export const authRefresh = async (refreshRequestDto: RefreshRequestDto, options?: RequestInit): Promise<AuthResponseDtoOutput> => {
 
-  return customFetch<authRefreshResponse>(getAuthRefreshUrl(),
+  return customFetch<AuthResponseDtoOutput>(getAuthRefreshUrl(),
   {
     ...options,
     method: 'POST',
@@ -304,90 +212,48 @@ export const authRefresh = async (refreshRequestDto: RefreshRequestDto, options?
 
 
 
-export const getAuthRefreshQueryKey = (refreshRequestDto?: RefreshRequestDto,) => {
-    return [
-    'POST', `/api/auth/refresh`, refreshRequestDto
-    ] as const;
+export const getAuthRefreshMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authRefresh>>, TError,{data: RefreshRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authRefresh>>, TError,{data: RefreshRequestDto}, TContext> => {
+
+const mutationKey = ['authRefresh'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authRefresh>>, {data: RefreshRequestDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authRefresh(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof authRefresh>>>
+    export type AuthRefreshMutationBody = RefreshRequestDto
+    export type AuthRefreshMutationError = unknown
+
+    export const useAuthRefresh = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authRefresh>>, TError,{data: RefreshRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authRefresh>>,
+        TError,
+        {data: RefreshRequestDto},
+        TContext
+      > => {
+      return useMutation(getAuthRefreshMutationOptions(options), queryClient);
     }
-
-
-export const getAuthRefreshQueryOptions = <TData = Awaited<ReturnType<typeof authRefresh>>, TError = unknown>(refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthRefreshQueryKey(refreshRequestDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authRefresh>>> = ({ signal }) => authRefresh(refreshRequestDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthRefreshQueryResult = NonNullable<Awaited<ReturnType<typeof authRefresh>>>
-export type AuthRefreshQueryError = unknown
-
-
-export function useAuthRefresh<TData = Awaited<ReturnType<typeof authRefresh>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authRefresh>>,
-          TError,
-          Awaited<ReturnType<typeof authRefresh>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthRefresh<TData = Awaited<ReturnType<typeof authRefresh>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authRefresh>>,
-          TError,
-          Awaited<ReturnType<typeof authRefresh>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthRefresh<TData = Awaited<ReturnType<typeof authRefresh>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthRefresh<TData = Awaited<ReturnType<typeof authRefresh>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authRefresh>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthRefreshQueryOptions(refreshRequestDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authLogoutResponse204 = {
-  data: void
-  status: 204
-}
-
-export type authLogoutResponseSuccess = (authLogoutResponse204) & {
-  headers: Headers;
-};
-;
-
-export type authLogoutResponse = (authLogoutResponseSuccess)
-
-export const getAuthLogoutUrl = () => {
+    export const getAuthLogoutUrl = () => {
 
 
 
@@ -395,9 +261,9 @@ export const getAuthLogoutUrl = () => {
   return `/api/auth/logout`
 }
 
-export const authLogout = async (refreshRequestDto: RefreshRequestDto, options?: RequestInit): Promise<authLogoutResponse> => {
+export const authLogout = async (refreshRequestDto: RefreshRequestDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<authLogoutResponse>(getAuthLogoutUrl(),
+  return customFetch<void>(getAuthLogoutUrl(),
   {
     ...options,
     method: 'POST',
@@ -410,90 +276,48 @@ export const authLogout = async (refreshRequestDto: RefreshRequestDto, options?:
 
 
 
-export const getAuthLogoutQueryKey = (refreshRequestDto?: RefreshRequestDto,) => {
-    return [
-    'POST', `/api/auth/logout`, refreshRequestDto
-    ] as const;
+export const getAuthLogoutMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,{data: RefreshRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,{data: RefreshRequestDto}, TContext> => {
+
+const mutationKey = ['authLogout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authLogout>>, {data: RefreshRequestDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authLogout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof authLogout>>>
+    export type AuthLogoutMutationBody = RefreshRequestDto
+    export type AuthLogoutMutationError = unknown
+
+    export const useAuthLogout = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authLogout>>, TError,{data: RefreshRequestDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authLogout>>,
+        TError,
+        {data: RefreshRequestDto},
+        TContext
+      > => {
+      return useMutation(getAuthLogoutMutationOptions(options), queryClient);
     }
-
-
-export const getAuthLogoutQueryOptions = <TData = Awaited<ReturnType<typeof authLogout>>, TError = unknown>(refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthLogoutQueryKey(refreshRequestDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authLogout>>> = ({ signal }) => authLogout(refreshRequestDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthLogoutQueryResult = NonNullable<Awaited<ReturnType<typeof authLogout>>>
-export type AuthLogoutQueryError = unknown
-
-
-export function useAuthLogout<TData = Awaited<ReturnType<typeof authLogout>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authLogout>>,
-          TError,
-          Awaited<ReturnType<typeof authLogout>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthLogout<TData = Awaited<ReturnType<typeof authLogout>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authLogout>>,
-          TError,
-          Awaited<ReturnType<typeof authLogout>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthLogout<TData = Awaited<ReturnType<typeof authLogout>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthLogout<TData = Awaited<ReturnType<typeof authLogout>>, TError = unknown>(
- refreshRequestDto: RefreshRequestDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authLogout>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthLogoutQueryOptions(refreshRequestDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authMeResponse200 = {
-  data: UserDtoOutput
-  status: 200
-}
-
-export type authMeResponseSuccess = (authMeResponse200) & {
-  headers: Headers;
-};
-;
-
-export type authMeResponse = (authMeResponseSuccess)
-
-export const getAuthMeUrl = () => {
+    export const getAuthMeUrl = () => {
 
 
 
@@ -501,9 +325,9 @@ export const getAuthMeUrl = () => {
   return `/api/auth/me`
 }
 
-export const authMe = async ( options?: RequestInit): Promise<authMeResponse> => {
+export const authMe = async ( options?: RequestInit): Promise<UserDtoOutput> => {
 
-  return customFetch<authMeResponse>(getAuthMeUrl(),
+  return customFetch<UserDtoOutput>(getAuthMeUrl(),
   {
     ...options,
     method: 'GET'
@@ -639,18 +463,6 @@ export function useAuthMeSuspense<TData = Awaited<ReturnType<typeof authMe>>, TE
 
 
 
-export type authForgotPasswordResponse204 = {
-  data: void
-  status: 204
-}
-
-export type authForgotPasswordResponseSuccess = (authForgotPasswordResponse204) & {
-  headers: Headers;
-};
-;
-
-export type authForgotPasswordResponse = (authForgotPasswordResponseSuccess)
-
 export const getAuthForgotPasswordUrl = () => {
 
 
@@ -659,9 +471,9 @@ export const getAuthForgotPasswordUrl = () => {
   return `/api/auth/forgot-password`
 }
 
-export const authForgotPassword = async (forgotPasswordDto: ForgotPasswordDto, options?: RequestInit): Promise<authForgotPasswordResponse> => {
+export const authForgotPassword = async (forgotPasswordDto: ForgotPasswordDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<authForgotPasswordResponse>(getAuthForgotPasswordUrl(),
+  return customFetch<void>(getAuthForgotPasswordUrl(),
   {
     ...options,
     method: 'POST',
@@ -674,90 +486,48 @@ export const authForgotPassword = async (forgotPasswordDto: ForgotPasswordDto, o
 
 
 
-export const getAuthForgotPasswordQueryKey = (forgotPasswordDto?: ForgotPasswordDto,) => {
-    return [
-    'POST', `/api/auth/forgot-password`, forgotPasswordDto
-    ] as const;
+export const getAuthForgotPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError,{data: ForgotPasswordDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError,{data: ForgotPasswordDto}, TContext> => {
+
+const mutationKey = ['authForgotPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authForgotPassword>>, {data: ForgotPasswordDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authForgotPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthForgotPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof authForgotPassword>>>
+    export type AuthForgotPasswordMutationBody = ForgotPasswordDto
+    export type AuthForgotPasswordMutationError = unknown
+
+    export const useAuthForgotPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError,{data: ForgotPasswordDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authForgotPassword>>,
+        TError,
+        {data: ForgotPasswordDto},
+        TContext
+      > => {
+      return useMutation(getAuthForgotPasswordMutationOptions(options), queryClient);
     }
-
-
-export const getAuthForgotPasswordQueryOptions = <TData = Awaited<ReturnType<typeof authForgotPassword>>, TError = unknown>(forgotPasswordDto: ForgotPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthForgotPasswordQueryKey(forgotPasswordDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authForgotPassword>>> = ({ signal }) => authForgotPassword(forgotPasswordDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthForgotPasswordQueryResult = NonNullable<Awaited<ReturnType<typeof authForgotPassword>>>
-export type AuthForgotPasswordQueryError = unknown
-
-
-export function useAuthForgotPassword<TData = Awaited<ReturnType<typeof authForgotPassword>>, TError = unknown>(
- forgotPasswordDto: ForgotPasswordDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authForgotPassword>>,
-          TError,
-          Awaited<ReturnType<typeof authForgotPassword>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthForgotPassword<TData = Awaited<ReturnType<typeof authForgotPassword>>, TError = unknown>(
- forgotPasswordDto: ForgotPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authForgotPassword>>,
-          TError,
-          Awaited<ReturnType<typeof authForgotPassword>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthForgotPassword<TData = Awaited<ReturnType<typeof authForgotPassword>>, TError = unknown>(
- forgotPasswordDto: ForgotPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthForgotPassword<TData = Awaited<ReturnType<typeof authForgotPassword>>, TError = unknown>(
- forgotPasswordDto: ForgotPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authForgotPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthForgotPasswordQueryOptions(forgotPasswordDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authResetPasswordResponse204 = {
-  data: void
-  status: 204
-}
-
-export type authResetPasswordResponseSuccess = (authResetPasswordResponse204) & {
-  headers: Headers;
-};
-;
-
-export type authResetPasswordResponse = (authResetPasswordResponseSuccess)
-
-export const getAuthResetPasswordUrl = () => {
+    export const getAuthResetPasswordUrl = () => {
 
 
 
@@ -765,9 +535,9 @@ export const getAuthResetPasswordUrl = () => {
   return `/api/auth/reset-password`
 }
 
-export const authResetPassword = async (resetPasswordDto: ResetPasswordDto, options?: RequestInit): Promise<authResetPasswordResponse> => {
+export const authResetPassword = async (resetPasswordDto: ResetPasswordDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<authResetPasswordResponse>(getAuthResetPasswordUrl(),
+  return customFetch<void>(getAuthResetPasswordUrl(),
   {
     ...options,
     method: 'POST',
@@ -780,90 +550,48 @@ export const authResetPassword = async (resetPasswordDto: ResetPasswordDto, opti
 
 
 
-export const getAuthResetPasswordQueryKey = (resetPasswordDto?: ResetPasswordDto,) => {
-    return [
-    'POST', `/api/auth/reset-password`, resetPasswordDto
-    ] as const;
+export const getAuthResetPasswordMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authResetPassword>>, TError,{data: ResetPasswordDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authResetPassword>>, TError,{data: ResetPasswordDto}, TContext> => {
+
+const mutationKey = ['authResetPassword'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authResetPassword>>, {data: ResetPasswordDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authResetPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof authResetPassword>>>
+    export type AuthResetPasswordMutationBody = ResetPasswordDto
+    export type AuthResetPasswordMutationError = unknown
+
+    export const useAuthResetPassword = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authResetPassword>>, TError,{data: ResetPasswordDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authResetPassword>>,
+        TError,
+        {data: ResetPasswordDto},
+        TContext
+      > => {
+      return useMutation(getAuthResetPasswordMutationOptions(options), queryClient);
     }
-
-
-export const getAuthResetPasswordQueryOptions = <TData = Awaited<ReturnType<typeof authResetPassword>>, TError = unknown>(resetPasswordDto: ResetPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthResetPasswordQueryKey(resetPasswordDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authResetPassword>>> = ({ signal }) => authResetPassword(resetPasswordDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthResetPasswordQueryResult = NonNullable<Awaited<ReturnType<typeof authResetPassword>>>
-export type AuthResetPasswordQueryError = unknown
-
-
-export function useAuthResetPassword<TData = Awaited<ReturnType<typeof authResetPassword>>, TError = unknown>(
- resetPasswordDto: ResetPasswordDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authResetPassword>>,
-          TError,
-          Awaited<ReturnType<typeof authResetPassword>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthResetPassword<TData = Awaited<ReturnType<typeof authResetPassword>>, TError = unknown>(
- resetPasswordDto: ResetPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authResetPassword>>,
-          TError,
-          Awaited<ReturnType<typeof authResetPassword>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthResetPassword<TData = Awaited<ReturnType<typeof authResetPassword>>, TError = unknown>(
- resetPasswordDto: ResetPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthResetPassword<TData = Awaited<ReturnType<typeof authResetPassword>>, TError = unknown>(
- resetPasswordDto: ResetPasswordDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResetPassword>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthResetPasswordQueryOptions(resetPasswordDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authVerifyEmailResponse204 = {
-  data: void
-  status: 204
-}
-
-export type authVerifyEmailResponseSuccess = (authVerifyEmailResponse204) & {
-  headers: Headers;
-};
-;
-
-export type authVerifyEmailResponse = (authVerifyEmailResponseSuccess)
-
-export const getAuthVerifyEmailUrl = () => {
+    export const getAuthVerifyEmailUrl = () => {
 
 
 
@@ -871,9 +599,9 @@ export const getAuthVerifyEmailUrl = () => {
   return `/api/auth/verify-email`
 }
 
-export const authVerifyEmail = async (verifyEmailDto: VerifyEmailDto, options?: RequestInit): Promise<authVerifyEmailResponse> => {
+export const authVerifyEmail = async (verifyEmailDto: VerifyEmailDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<authVerifyEmailResponse>(getAuthVerifyEmailUrl(),
+  return customFetch<void>(getAuthVerifyEmailUrl(),
   {
     ...options,
     method: 'POST',
@@ -886,90 +614,48 @@ export const authVerifyEmail = async (verifyEmailDto: VerifyEmailDto, options?: 
 
 
 
-export const getAuthVerifyEmailQueryKey = (verifyEmailDto?: VerifyEmailDto,) => {
-    return [
-    'POST', `/api/auth/verify-email`, verifyEmailDto
-    ] as const;
+export const getAuthVerifyEmailMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError,{data: VerifyEmailDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError,{data: VerifyEmailDto}, TContext> => {
+
+const mutationKey = ['authVerifyEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authVerifyEmail>>, {data: VerifyEmailDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authVerifyEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthVerifyEmailMutationResult = NonNullable<Awaited<ReturnType<typeof authVerifyEmail>>>
+    export type AuthVerifyEmailMutationBody = VerifyEmailDto
+    export type AuthVerifyEmailMutationError = unknown
+
+    export const useAuthVerifyEmail = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError,{data: VerifyEmailDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authVerifyEmail>>,
+        TError,
+        {data: VerifyEmailDto},
+        TContext
+      > => {
+      return useMutation(getAuthVerifyEmailMutationOptions(options), queryClient);
     }
-
-
-export const getAuthVerifyEmailQueryOptions = <TData = Awaited<ReturnType<typeof authVerifyEmail>>, TError = unknown>(verifyEmailDto: VerifyEmailDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthVerifyEmailQueryKey(verifyEmailDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authVerifyEmail>>> = ({ signal }) => authVerifyEmail(verifyEmailDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthVerifyEmailQueryResult = NonNullable<Awaited<ReturnType<typeof authVerifyEmail>>>
-export type AuthVerifyEmailQueryError = unknown
-
-
-export function useAuthVerifyEmail<TData = Awaited<ReturnType<typeof authVerifyEmail>>, TError = unknown>(
- verifyEmailDto: VerifyEmailDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authVerifyEmail>>,
-          TError,
-          Awaited<ReturnType<typeof authVerifyEmail>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthVerifyEmail<TData = Awaited<ReturnType<typeof authVerifyEmail>>, TError = unknown>(
- verifyEmailDto: VerifyEmailDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authVerifyEmail>>,
-          TError,
-          Awaited<ReturnType<typeof authVerifyEmail>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthVerifyEmail<TData = Awaited<ReturnType<typeof authVerifyEmail>>, TError = unknown>(
- verifyEmailDto: VerifyEmailDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthVerifyEmail<TData = Awaited<ReturnType<typeof authVerifyEmail>>, TError = unknown>(
- verifyEmailDto: VerifyEmailDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authVerifyEmail>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthVerifyEmailQueryOptions(verifyEmailDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type authResendVerificationResponse204 = {
-  data: void
-  status: 204
-}
-
-export type authResendVerificationResponseSuccess = (authResendVerificationResponse204) & {
-  headers: Headers;
-};
-;
-
-export type authResendVerificationResponse = (authResendVerificationResponseSuccess)
-
-export const getAuthResendVerificationUrl = () => {
+    export const getAuthResendVerificationUrl = () => {
 
 
 
@@ -977,9 +663,9 @@ export const getAuthResendVerificationUrl = () => {
   return `/api/auth/resend-verification`
 }
 
-export const authResendVerification = async (resendVerificationDto: ResendVerificationDto, options?: RequestInit): Promise<authResendVerificationResponse> => {
+export const authResendVerification = async (resendVerificationDto: ResendVerificationDto, options?: RequestInit): Promise<void> => {
 
-  return customFetch<authResendVerificationResponse>(getAuthResendVerificationUrl(),
+  return customFetch<void>(getAuthResendVerificationUrl(),
   {
     ...options,
     method: 'POST',
@@ -992,74 +678,44 @@ export const authResendVerification = async (resendVerificationDto: ResendVerifi
 
 
 
-export const getAuthResendVerificationQueryKey = (resendVerificationDto?: ResendVerificationDto,) => {
-    return [
-    'POST', `/api/auth/resend-verification`, resendVerificationDto
-    ] as const;
+export const getAuthResendVerificationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authResendVerification>>, TError,{data: ResendVerificationDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof authResendVerification>>, TError,{data: ResendVerificationDto}, TContext> => {
+
+const mutationKey = ['authResendVerification'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authResendVerification>>, {data: ResendVerificationDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authResendVerification(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthResendVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof authResendVerification>>>
+    export type AuthResendVerificationMutationBody = ResendVerificationDto
+    export type AuthResendVerificationMutationError = unknown
+
+    export const useAuthResendVerification = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authResendVerification>>, TError,{data: ResendVerificationDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authResendVerification>>,
+        TError,
+        {data: ResendVerificationDto},
+        TContext
+      > => {
+      return useMutation(getAuthResendVerificationMutationOptions(options), queryClient);
     }
-
-
-export const getAuthResendVerificationQueryOptions = <TData = Awaited<ReturnType<typeof authResendVerification>>, TError = unknown>(resendVerificationDto: ResendVerificationDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getAuthResendVerificationQueryKey(resendVerificationDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof authResendVerification>>> = ({ signal }) => authResendVerification(resendVerificationDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type AuthResendVerificationQueryResult = NonNullable<Awaited<ReturnType<typeof authResendVerification>>>
-export type AuthResendVerificationQueryError = unknown
-
-
-export function useAuthResendVerification<TData = Awaited<ReturnType<typeof authResendVerification>>, TError = unknown>(
- resendVerificationDto: ResendVerificationDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authResendVerification>>,
-          TError,
-          Awaited<ReturnType<typeof authResendVerification>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthResendVerification<TData = Awaited<ReturnType<typeof authResendVerification>>, TError = unknown>(
- resendVerificationDto: ResendVerificationDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof authResendVerification>>,
-          TError,
-          Awaited<ReturnType<typeof authResendVerification>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthResendVerification<TData = Awaited<ReturnType<typeof authResendVerification>>, TError = unknown>(
- resendVerificationDto: ResendVerificationDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuthResendVerification<TData = Awaited<ReturnType<typeof authResendVerification>>, TError = unknown>(
- resendVerificationDto: ResendVerificationDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authResendVerification>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getAuthResendVerificationQueryOptions(resendVerificationDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-

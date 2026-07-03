@@ -45,7 +45,7 @@ export class SessionsRepository {
       .findOneAndUpdate(
         { currentTokenHash: tokenHash },
         { $set: { currentTokenHash: newTokenHash, expiresAt: daysFromNow(ttlDays) } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .lean();
     if (!rotated) return null;

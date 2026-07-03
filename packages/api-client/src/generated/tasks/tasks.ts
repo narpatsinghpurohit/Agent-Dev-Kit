@@ -7,6 +7,7 @@
  */
 import {
   useInfiniteQuery,
+  useMutation,
   useQuery,
   useSuspenseQuery
 } from '@tanstack/react-query';
@@ -16,12 +17,15 @@ import type {
   DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
   InfiniteData,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
   UseInfiniteQueryOptions,
   UseInfiniteQueryResult,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
   UseSuspenseQueryOptions,
@@ -58,18 +62,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type tasksListResponse200 = {
-  data: TaskListResponseDtoOutput
-  status: 200
-}
-
-export type tasksListResponseSuccess = (tasksListResponse200) & {
-  headers: Headers;
-};
-;
-
-export type tasksListResponse = (tasksListResponseSuccess)
-
 export const getTasksListUrl = (params?: TasksListParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -85,9 +77,9 @@ export const getTasksListUrl = (params?: TasksListParams,) => {
   return stringifiedParams.length > 0 ? `/api/tasks?${stringifiedParams}` : `/api/tasks`
 }
 
-export const tasksList = async (params?: TasksListParams, options?: RequestInit): Promise<tasksListResponse> => {
+export const tasksList = async (params?: TasksListParams, options?: RequestInit): Promise<TaskListResponseDtoOutput> => {
 
-  return customFetch<tasksListResponse>(getTasksListUrl(params),
+  return customFetch<TaskListResponseDtoOutput>(getTasksListUrl(params),
   {
     ...options,
     method: 'GET'
@@ -293,18 +285,6 @@ export function useTasksListSuspense<TData = Awaited<ReturnType<typeof tasksList
 
 
 
-export type tasksCreateResponse201 = {
-  data: TaskDtoOutput
-  status: 201
-}
-
-export type tasksCreateResponseSuccess = (tasksCreateResponse201) & {
-  headers: Headers;
-};
-;
-
-export type tasksCreateResponse = (tasksCreateResponseSuccess)
-
 export const getTasksCreateUrl = () => {
 
 
@@ -313,9 +293,9 @@ export const getTasksCreateUrl = () => {
   return `/api/tasks`
 }
 
-export const tasksCreate = async (taskCreateDto: TaskCreateDto, options?: RequestInit): Promise<tasksCreateResponse> => {
+export const tasksCreate = async (taskCreateDto: TaskCreateDto, options?: RequestInit): Promise<TaskDtoOutput> => {
 
-  return customFetch<tasksCreateResponse>(getTasksCreateUrl(),
+  return customFetch<TaskDtoOutput>(getTasksCreateUrl(),
   {
     ...options,
     method: 'POST',
@@ -328,90 +308,48 @@ export const tasksCreate = async (taskCreateDto: TaskCreateDto, options?: Reques
 
 
 
-export const getTasksCreateQueryKey = (taskCreateDto?: TaskCreateDto,) => {
-    return [
-    'POST', `/api/tasks`, taskCreateDto
-    ] as const;
+export const getTasksCreateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksCreate>>, TError,{data: TaskCreateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof tasksCreate>>, TError,{data: TaskCreateDto}, TContext> => {
+
+const mutationKey = ['tasksCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tasksCreate>>, {data: TaskCreateDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  tasksCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TasksCreateMutationResult = NonNullable<Awaited<ReturnType<typeof tasksCreate>>>
+    export type TasksCreateMutationBody = TaskCreateDto
+    export type TasksCreateMutationError = unknown
+
+    export const useTasksCreate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksCreate>>, TError,{data: TaskCreateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof tasksCreate>>,
+        TError,
+        {data: TaskCreateDto},
+        TContext
+      > => {
+      return useMutation(getTasksCreateMutationOptions(options), queryClient);
     }
-
-
-export const getTasksCreateQueryOptions = <TData = Awaited<ReturnType<typeof tasksCreate>>, TError = unknown>(taskCreateDto: TaskCreateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTasksCreateQueryKey(taskCreateDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksCreate>>> = ({ signal }) => tasksCreate(taskCreateDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type TasksCreateQueryResult = NonNullable<Awaited<ReturnType<typeof tasksCreate>>>
-export type TasksCreateQueryError = unknown
-
-
-export function useTasksCreate<TData = Awaited<ReturnType<typeof tasksCreate>>, TError = unknown>(
- taskCreateDto: TaskCreateDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksCreate>>,
-          TError,
-          Awaited<ReturnType<typeof tasksCreate>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksCreate<TData = Awaited<ReturnType<typeof tasksCreate>>, TError = unknown>(
- taskCreateDto: TaskCreateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksCreate>>,
-          TError,
-          Awaited<ReturnType<typeof tasksCreate>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksCreate<TData = Awaited<ReturnType<typeof tasksCreate>>, TError = unknown>(
- taskCreateDto: TaskCreateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTasksCreate<TData = Awaited<ReturnType<typeof tasksCreate>>, TError = unknown>(
- taskCreateDto: TaskCreateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksCreate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getTasksCreateQueryOptions(taskCreateDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type tasksGetResponse200 = {
-  data: TaskDtoOutput
-  status: 200
-}
-
-export type tasksGetResponseSuccess = (tasksGetResponse200) & {
-  headers: Headers;
-};
-;
-
-export type tasksGetResponse = (tasksGetResponseSuccess)
-
-export const getTasksGetUrl = (id: string,) => {
+    export const getTasksGetUrl = (id: string,) => {
 
 
 
@@ -419,9 +357,9 @@ export const getTasksGetUrl = (id: string,) => {
   return `/api/tasks/${id}`
 }
 
-export const tasksGet = async (id: string, options?: RequestInit): Promise<tasksGetResponse> => {
+export const tasksGet = async (id: string, options?: RequestInit): Promise<TaskDtoOutput> => {
 
-  return customFetch<tasksGetResponse>(getTasksGetUrl(id),
+  return customFetch<TaskDtoOutput>(getTasksGetUrl(id),
   {
     ...options,
     method: 'GET'
@@ -557,18 +495,6 @@ export function useTasksGetSuspense<TData = Awaited<ReturnType<typeof tasksGet>>
 
 
 
-export type tasksUpdateResponse200 = {
-  data: TaskDtoOutput
-  status: 200
-}
-
-export type tasksUpdateResponseSuccess = (tasksUpdateResponse200) & {
-  headers: Headers;
-};
-;
-
-export type tasksUpdateResponse = (tasksUpdateResponseSuccess)
-
 export const getTasksUpdateUrl = (id: string,) => {
 
 
@@ -578,9 +504,9 @@ export const getTasksUpdateUrl = (id: string,) => {
 }
 
 export const tasksUpdate = async (id: string,
-    taskUpdateDto: TaskUpdateDto, options?: RequestInit): Promise<tasksUpdateResponse> => {
+    taskUpdateDto: TaskUpdateDto, options?: RequestInit): Promise<TaskDtoOutput> => {
 
-  return customFetch<tasksUpdateResponse>(getTasksUpdateUrl(id),
+  return customFetch<TaskDtoOutput>(getTasksUpdateUrl(id),
   {
     ...options,
     method: 'PATCH',
@@ -593,96 +519,48 @@ export const tasksUpdate = async (id: string,
 
 
 
-export const getTasksUpdateQueryKey = (id: string,
-    taskUpdateDto?: TaskUpdateDto,) => {
-    return [
-    'PATCH', `/api/tasks/${id}`, taskUpdateDto
-    ] as const;
+export const getTasksUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError,{id: string;data: TaskUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError,{id: string;data: TaskUpdateDto}, TContext> => {
+
+const mutationKey = ['tasksUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tasksUpdate>>, {id: string;data: TaskUpdateDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  tasksUpdate(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TasksUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof tasksUpdate>>>
+    export type TasksUpdateMutationBody = TaskUpdateDto
+    export type TasksUpdateMutationError = unknown
+
+    export const useTasksUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError,{id: string;data: TaskUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof tasksUpdate>>,
+        TError,
+        {id: string;data: TaskUpdateDto},
+        TContext
+      > => {
+      return useMutation(getTasksUpdateMutationOptions(options), queryClient);
     }
-
-
-export const getTasksUpdateQueryOptions = <TData = Awaited<ReturnType<typeof tasksUpdate>>, TError = unknown>(id: string,
-    taskUpdateDto: TaskUpdateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTasksUpdateQueryKey(id,taskUpdateDto);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksUpdate>>> = ({ signal }) => tasksUpdate(id,taskUpdateDto, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type TasksUpdateQueryResult = NonNullable<Awaited<ReturnType<typeof tasksUpdate>>>
-export type TasksUpdateQueryError = unknown
-
-
-export function useTasksUpdate<TData = Awaited<ReturnType<typeof tasksUpdate>>, TError = unknown>(
- id: string,
-    taskUpdateDto: TaskUpdateDto, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksUpdate>>,
-          TError,
-          Awaited<ReturnType<typeof tasksUpdate>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksUpdate<TData = Awaited<ReturnType<typeof tasksUpdate>>, TError = unknown>(
- id: string,
-    taskUpdateDto: TaskUpdateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksUpdate>>,
-          TError,
-          Awaited<ReturnType<typeof tasksUpdate>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksUpdate<TData = Awaited<ReturnType<typeof tasksUpdate>>, TError = unknown>(
- id: string,
-    taskUpdateDto: TaskUpdateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTasksUpdate<TData = Awaited<ReturnType<typeof tasksUpdate>>, TError = unknown>(
- id: string,
-    taskUpdateDto: TaskUpdateDto, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksUpdate>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getTasksUpdateQueryOptions(id,taskUpdateDto,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type tasksRemoveResponse204 = {
-  data: void
-  status: 204
-}
-
-export type tasksRemoveResponseSuccess = (tasksRemoveResponse204) & {
-  headers: Headers;
-};
-;
-
-export type tasksRemoveResponse = (tasksRemoveResponseSuccess)
-
-export const getTasksRemoveUrl = (id: string,) => {
+    export const getTasksRemoveUrl = (id: string,) => {
 
 
 
@@ -690,9 +568,9 @@ export const getTasksRemoveUrl = (id: string,) => {
   return `/api/tasks/${id}`
 }
 
-export const tasksRemove = async (id: string, options?: RequestInit): Promise<tasksRemoveResponse> => {
+export const tasksRemove = async (id: string, options?: RequestInit): Promise<void> => {
 
-  return customFetch<tasksRemoveResponse>(getTasksRemoveUrl(id),
+  return customFetch<void>(getTasksRemoveUrl(id),
   {
     ...options,
     method: 'DELETE'
@@ -705,74 +583,44 @@ export const tasksRemove = async (id: string, options?: RequestInit): Promise<ta
 
 
 
-export const getTasksRemoveQueryKey = (id: string,) => {
-    return [
-    'DELETE', `/api/tasks/${id}`
-    ] as const;
+export const getTasksRemoveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksRemove>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof tasksRemove>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['tasksRemove'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tasksRemove>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  tasksRemove(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TasksRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof tasksRemove>>>
+
+    export type TasksRemoveMutationError = unknown
+
+    export const useTasksRemove = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tasksRemove>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof tasksRemove>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getTasksRemoveMutationOptions(options), queryClient);
     }
-
-
-export const getTasksRemoveQueryOptions = <TData = Awaited<ReturnType<typeof tasksRemove>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getTasksRemoveQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksRemove>>> = ({ signal }) => tasksRemove(id, { signal, ...requestOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type TasksRemoveQueryResult = NonNullable<Awaited<ReturnType<typeof tasksRemove>>>
-export type TasksRemoveQueryError = unknown
-
-
-export function useTasksRemove<TData = Awaited<ReturnType<typeof tasksRemove>>, TError = unknown>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksRemove>>,
-          TError,
-          Awaited<ReturnType<typeof tasksRemove>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksRemove<TData = Awaited<ReturnType<typeof tasksRemove>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof tasksRemove>>,
-          TError,
-          Awaited<ReturnType<typeof tasksRemove>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTasksRemove<TData = Awaited<ReturnType<typeof tasksRemove>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTasksRemove<TData = Awaited<ReturnType<typeof tasksRemove>>, TError = unknown>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof tasksRemove>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getTasksRemoveQueryOptions(id,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
