@@ -28,6 +28,19 @@ export const EnvSchema = z.object({
   MAILER_DRIVER: z.enum(['console']).default('console'),
   REQUIRE_EMAIL_VERIFICATION: boolString.default(false),
 
+  // Encrypts runtime secrets at rest (app_settings collection). Boot-only:
+  // it can never live in the database it protects. Rotating it requires
+  // re-saving stored secrets. openssl rand -base64 48
+  // preprocess: `KEY=` in a copied .env arrives as '' — treat it as unset so
+  // the dev default applies (production still rejects the default at boot).
+  SETTINGS_ENCRYPTION_KEY: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string()
+      .min(32, 'use at least 32 chars (openssl rand -base64 48)')
+      .default('dev-only-settings-key-change-me-0123456789'),
+  ),
+
   // --- AI ---
   AI_PROVIDER_MODE: z.enum(['mock', 'auto']).default('mock'),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
@@ -48,6 +61,14 @@ export function validateEnv(config: Record<string, unknown>): Env {
   const result = EnvSchema.safeParse(config);
   if (!result.success) {
     throw new Error(`Invalid environment configuration:\n${z.prettifyError(result.error)}`);
+  }
+  if (
+    result.data.NODE_ENV === 'production' &&
+    result.data.SETTINGS_ENCRYPTION_KEY === 'dev-only-settings-key-change-me-0123456789'
+  ) {
+    throw new Error(
+      'SETTINGS_ENCRYPTION_KEY must be set in production (it encrypts runtime secrets at rest).',
+    );
   }
   return result.data;
 }

@@ -13,6 +13,15 @@ export async function createTestApp(dbName: string): Promise<INestApplication> {
   process.env.MONGODB_URI = baseUri.replace('/?', `/${dbName}?`);
   process.env.JWT_ACCESS_SECRET ??= 'e2e-test-secret-0123456789abcdefghijklmnop';
   process.env.AI_PROVIDER_MODE = 'mock';
+  // Hermetic: a developer's real keys/overrides in apps/api/.env must never
+  // seed the test settings store (process.env beats the .env file).
+  process.env.GOOGLE_GENERATIVE_AI_API_KEY = '';
+  process.env.AWS_BEARER_TOKEN_BEDROCK = '';
+  process.env.AI_MODEL_COPILOT_CHAT = '';
+  process.env.AI_MODEL_SUMMARIZE = '';
+  process.env.AI_MODEL_SPEECH_STT = '';
+  process.env.AI_MODEL_SPEECH_TTS = '';
+  process.env.CORS_ORIGINS = 'http://localhost:5173';
 
   const { AppModule } = await import('../src/app.module.js');
   const { configureApp } = await import('../src/app.setup.js');

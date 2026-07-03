@@ -5,6 +5,7 @@ import type { AppShellViewModel } from './app-shell.hook';
 
 export function AppShellView({
   userName,
+  isAdmin,
   copilotOpen,
   onToggleCopilot,
   onLogout,
@@ -25,6 +26,15 @@ export function AppShellView({
             >
               Tasks
             </Link>
+            {isAdmin ? (
+              <Link
+                to="/settings"
+                className="hover:text-ink"
+                activeProps={{ className: 'text-ink font-medium' }}
+              >
+                Settings
+              </Link>
+            ) : null}
           </nav>
         </div>
         <div className="flex items-center gap-4">

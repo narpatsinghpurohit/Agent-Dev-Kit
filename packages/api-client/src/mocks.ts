@@ -6,3 +6,4 @@
 export * from './generated/auth/auth.msw';
 export * from './generated/tasks/tasks.msw';
 export * from './generated/ai/ai.msw';
+export * from './generated/settings/settings.msw';

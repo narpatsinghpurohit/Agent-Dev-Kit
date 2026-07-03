@@ -1,4 +1,4 @@
-import { inputClass, primaryButtonClass } from '../../auth/components/auth-card';
+import { inputClass, primaryButtonClass } from '../../../components/form-styles';
 import type { TaskFormViewModel } from './task-form.hook';
 
 export function TaskFormView({ form, serverError, isEdit, onCancel }: TaskFormViewModel) {

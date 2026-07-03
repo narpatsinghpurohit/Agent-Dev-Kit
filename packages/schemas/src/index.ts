@@ -3,3 +3,4 @@ export * from './user';
 export * from './auth';
 export * from './tasks';
 export * from './ai';
+export * from './settings';

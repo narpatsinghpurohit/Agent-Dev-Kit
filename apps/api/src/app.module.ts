@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { type Env, validateEnv } from './config/env.schema';
 import { MailerModule } from './mailer/mailer.module';
+import { SettingsModule } from './settings/settings.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
         skipIf: () => config.get('NODE_ENV', { infer: true }) === 'test',
       }),
     }),
+    SettingsModule,
     UsersModule,
     MailerModule,
     AuthModule,

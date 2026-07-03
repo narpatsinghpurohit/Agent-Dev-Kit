@@ -24,7 +24,7 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
 - **Hash by secret type:** passwords → argon2id with OWASP parameters (`{ memoryCost: 65536, timeCost: 3, parallelism: 1 }` in `auth.service.ts`); high-entropy opaque tokens (refresh, reset, verify) → single SHA-256 (`TokenService.hashToken`) — they have 256 bits of entropy, a slow hash adds nothing. Only hashes touch the database.
 - **Throttler TTLs are MILLISECONDS.** Global default `{ ttl: 60_000, limit: 100 }` (`app.module.ts`); credential endpoints tighten to `@Throttle({ default: { limit: 5, ttl: 60_000 } })`. `ThrottlerGuard` is registered before `AuthGuard` so brute-force traffic is rejected without token-verification work. Writing `ttl: 60` means 60 ms — effectively no limit.
 - **Prevent account enumeration everywhere:** `forgot-password` and `resend-verification` return 204 whether or not the account exists; login verifies against `DUMMY_ARGON2_HASH` when the user is missing so response timing is constant (`auth.service.ts`).
-- **Keep secrets out of logs.** nestjs-pino redacts `req.headers.authorization` and `req.headers.cookie` (`app.module.ts`); never log tokens, hashes, or passwords yourself. Secrets come from env (validated in `config/env.schema.ts`), never from code.
+- **Keep secrets out of logs.** nestjs-pino redacts `req.headers.authorization` and `req.headers.cookie` (`app.module.ts`); never log tokens, hashes, or passwords yourself. Secrets come from env (validated in `config/env.schema.ts`) or the encrypted runtime settings store (`app_settings`, AES-256-GCM — see docs/guidelines/configuration.md), never from code.
 - **Web token storage: memory only.** The access token lives in a module-scope variable behind the injected `TokenStorage` (`apps/web/src/lib/auth.ts`); the refresh token is an httpOnly cookie JS never sees. Session continuity across reloads comes from the silent refresh in `bootstrapAuth()` before the router mounts.
 - **Copilot tools inherit REST security.** Tools call `TasksService` — the same authz/validation path as HTTP — with `userId` captured from the verified JWT (`apps/api/src/ai/copilot/copilot-tools.service.ts`), and every mutating tool requires in-chat user approval (`apps/api/src/ai/chat/chat.service.ts`):
   ```ts
@@ -50,10 +50,10 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
 `apps/api/src/app.setup.ts` runs for both `main.ts` and the e2e suites, so tests exercise the real middleware stack:
 
 - `app.use(helmet())` — security headers on every response.
-- `app.enableCors({ origin: config.get('CORS_ORIGINS', ...), credentials: true })` — allowed origins come from validated env, never `*` (credentialed requests forbid it anyway).
+- CORS origins are a runtime setting evaluated per request (`app.setup.ts` reads `SettingsService.getGeneral().corsOrigins`); env `CORS_ORIGINS` is only the seed. Never `*` (credentialed requests forbid it anyway).
 - `app.set('trust proxy', 1)` — behind a reverse proxy in prod; without it the throttler rate-limits the proxy's IP instead of the client's.
 - The throttler is skipped only when `NODE_ENV === 'test'` (`skipIf` in `app.module.ts`) because e2e suites hammer auth endpoints past human limits — never widen that condition.
-- Email verification is a login gate only when `REQUIRE_EMAIL_VERIFICATION` is set; the check lives in `AuthService.login`, not in the guard.
+- Email verification is a login gate controlled by the `requireEmailVerification` runtime setting (env var seeds it); the check lives in `AuthService.login`, not in the guard.
 
 ## Canonical example in this repo
 
@@ -93,7 +93,7 @@ if (!task) throw new NotFoundException('Task not found');
 - Token issue/verify/hash primitives: `apps/api/src/auth/token.service.ts`
 - Rotation, grace window, family revocation: `apps/api/src/auth/auth.service.ts` + `sessions.repository.ts` + `session.schema.ts`
 - Cookie vs body transport, per-endpoint throttles: `apps/api/src/auth/auth.controller.ts`
-- Auth-related env knobs (TTLs, grace window, `COOKIE_SECURE`, `REQUIRE_EMAIL_VERIFICATION`): `apps/api/src/config/env.schema.ts`
+- Auth-related boot knobs (TTLs, grace window, `COOKIE_SECURE`): `apps/api/src/config/env.schema.ts`; runtime flags like email verification: `docs/guidelines/configuration.md`
 - Web session lifecycle (in-memory token, silent refresh, 401 retry): `apps/web/src/lib/auth.ts`, `packages/api-client/src/http/auth-fetch.ts`, `packages/api-client/src/auth/token-storage.ts`
 - Copilot/AI-specific rules beyond tool security: `docs/guidelines/ai.md`
 - Auth e2e coverage (rotation, reuse, family revocation flows): `apps/api/test/auth.e2e-spec.ts`

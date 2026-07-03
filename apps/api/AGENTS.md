@@ -6,7 +6,8 @@
 - `src/auth/` — controller, plain `AuthGuard`, `TokenService`, sessions + refresh rotation.
 - `src/tasks/` — controller → service → repository; every repo query filters `ownerId`.
 - `src/ai/` — model registry, feature-models, copilot chat, speech, usage budget, mock provider. The ONLY place `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` may be imported (lint-enforced).
-- `src/common/` — `@Public()` / `@CurrentUser()` decorators, `AllExceptionsFilter`.
+- `src/settings/` — runtime settings: encrypted (AES-256-GCM) `app_settings` store, admin-only API, hot-reload subscribers. detail: docs/guidelines/configuration.md
+- `src/common/` — `@Public()` / `@CurrentUser()` decorators, `AdminGuard`, `AllExceptionsFilter`.
 - `src/config/env.schema.ts` — zod-validated env; boot fails on bad config. Copy `.env.example` → `.env`.
 - `src/scripts/` — `emit-openapi.ts` (writes committed `openapi.json`), `seed.ts`.
 - `test/` — e2e specs (`*.e2e-spec.ts`) + `global-setup.ts` (in-memory Mongo replica set).

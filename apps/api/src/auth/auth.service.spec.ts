@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Mailer } from '../mailer/mailer.service';
+import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { OneTimeTokensRepository } from './one-time-tokens.repository';
@@ -64,6 +65,10 @@ describe('AuthService.refresh', () => {
         { provide: OneTimeTokensRepository, useValue: { issue: vi.fn(), consume: vi.fn() } },
         { provide: TokenService, useValue: tokens },
         { provide: Mailer, useValue: { send: vi.fn() } },
+        {
+          provide: SettingsService,
+          useValue: { getGeneral: () => ({ requireEmailVerification: false, corsOrigins: [] }) },
+        },
         {
           provide: ConfigService,
           useValue: { get: vi.fn((key: string) => ENV[key]) },
@@ -151,6 +156,10 @@ describe('AuthService.login', () => {
           useValue: { hashToken: vi.fn(), generateOpaqueToken: vi.fn(), signAccessToken: vi.fn() },
         },
         { provide: Mailer, useValue: { send: vi.fn() } },
+        {
+          provide: SettingsService,
+          useValue: { getGeneral: () => ({ requireEmailVerification: false, corsOrigins: [] }) },
+        },
         { provide: ConfigService, useValue: { get: vi.fn((key: string) => ENV[key]) } },
       ],
     }).compile();

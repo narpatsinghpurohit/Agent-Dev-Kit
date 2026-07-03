@@ -14,6 +14,7 @@ export interface SessionUser {
   email: string;
   name: string;
   emailVerified: boolean;
+  role: 'admin' | 'member';
   createdAt: string;
 }
 

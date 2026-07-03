@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedTasksNewRouteImport } from './routes/_authenticated/tasks/new'
 import { Route as AuthenticatedTasksTaskIdRouteImport } from './routes/_authenticated/tasks/$taskId'
@@ -36,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tasks/$taskId': typeof AuthenticatedTasksTaskIdRoute
   '/tasks/new': typeof AuthenticatedTasksNewRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tasks/$taskId': typeof AuthenticatedTasksTaskIdRoute
   '/tasks/new': typeof AuthenticatedTasksNewRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks/$taskId': typeof AuthenticatedTasksTaskIdRoute
   '/_authenticated/tasks/new': typeof AuthenticatedTasksNewRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -82,15 +91,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/signup' | '/tasks/$taskId' | '/tasks/new' | '/tasks/'
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/settings'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/tasks/$taskId' | '/tasks/new' | '/tasks'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/settings'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/tasks'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/_authenticated/settings'
     | '/_authenticated/tasks/$taskId'
     | '/_authenticated/tasks/new'
     | '/_authenticated/tasks/'
@@ -133,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/tasks/': {
       id: '/_authenticated/tasks/'
       path: '/tasks'
@@ -158,12 +188,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksTaskIdRoute: typeof AuthenticatedTasksTaskIdRoute
   AuthenticatedTasksNewRoute: typeof AuthenticatedTasksNewRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksTaskIdRoute: AuthenticatedTasksTaskIdRoute,
   AuthenticatedTasksNewRoute: AuthenticatedTasksNewRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,

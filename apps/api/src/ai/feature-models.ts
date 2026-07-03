@@ -1,5 +1,6 @@
 import {
   type AiFeatureName,
+  type CopilotSettings,
   type FeatureModelConfig,
   FeatureModelsSchema,
   ModelRefSchema,
@@ -7,12 +8,14 @@ import {
 import type { Env } from '../config/env.schema';
 
 /**
- * THE model-management standard: every AI-touching feature declares what it
- * needs here — model, params, capabilities. Feature code asks the registry
- * for a feature name and never hardcodes a provider or model id (lint- and
- * boot-enforced). Override any entry per environment:
+ * THE model-management standard: every AI-touching feature declares its
+ * defaults here — model, params, capabilities. Feature code asks the
+ * registry for a feature name and never hardcodes a provider or model id
+ * (lint- and boot-enforced).
  *
- *   AI_MODEL_COPILOT_CHAT=google:gemini-3.1-pro-preview
+ * Precedence per feature: runtime settings (admin UI, DB-backed)
+ *   > AI_MODEL_<FEATURE> env override > these defaults.
+ * Key availability is handled by the registry (missing key → mock fallback).
  */
 const DEFAULT_FEATURE_MODELS: Record<AiFeatureName, FeatureModelConfig> = {
   // Claude on Bedrock: strongest tool-calling for the copilot loop.
@@ -43,6 +46,14 @@ const DEFAULT_FEATURE_MODELS: Record<AiFeatureName, FeatureModelConfig> = {
   },
 };
 
+/** Single source for the copilot's tunable defaults (settings seeds reuse it). */
+export const COPILOT_DEFAULTS: CopilotSettings = {
+  model: DEFAULT_FEATURE_MODELS['copilot-chat'].model,
+  temperature: DEFAULT_FEATURE_MODELS['copilot-chat'].temperature ?? 0.7,
+  maxOutputTokens: DEFAULT_FEATURE_MODELS['copilot-chat'].maxOutputTokens,
+  topP: DEFAULT_FEATURE_MODELS['copilot-chat'].topP ?? null,
+};
+
 const ENV_OVERRIDE_KEYS: Record<AiFeatureName, keyof Env> = {
   'copilot-chat': 'AI_MODEL_COPILOT_CHAT',
   summarize: 'AI_MODEL_SUMMARIZE',
@@ -52,33 +63,40 @@ const ENV_OVERRIDE_KEYS: Record<AiFeatureName, keyof Env> = {
 
 export type ResolvedFeatureModels = Record<AiFeatureName, FeatureModelConfig>;
 
-/**
- * Applies env overrides and validates the result at boot — misconfiguration
- * (bad ref, missing key, provider without the needed capability) refuses to
- * start instead of failing on first use.
- */
-export function resolveFeatureModels(env: {
-  mode: Env['AI_PROVIDER_MODE'];
+export function resolveFeatureModels(input: {
+  mode: 'mock' | 'auto';
   overrides: Partial<Record<AiFeatureName, string | undefined>>;
-  hasGoogleKey: boolean;
-  hasBedrockAuth: boolean;
+  /** Runtime-tunable copilot config from the settings store. */
+  copilot?: CopilotSettings;
 }): ResolvedFeatureModels {
   const resolved = {} as ResolvedFeatureModels;
 
   for (const [feature, defaults] of Object.entries(DEFAULT_FEATURE_MODELS) as Array<
     [AiFeatureName, FeatureModelConfig]
   >) {
-    const override = env.overrides[feature];
-    let model = override ? ModelRefSchema.parse(override) : defaults.model;
-    if (env.mode === 'mock') {
-      model = `mock:${feature}`;
+    const override = input.overrides[feature];
+    let config: FeatureModelConfig = {
+      ...defaults,
+      ...(override ? { model: ModelRefSchema.parse(override) } : {}),
+    };
+    if (feature === 'copilot-chat' && input.copilot) {
+      config = {
+        ...config,
+        model: input.copilot.model,
+        temperature: input.copilot.temperature,
+        maxOutputTokens: input.copilot.maxOutputTokens,
+        topP: input.copilot.topP ?? undefined,
+      };
     }
-    resolved[feature] = { ...defaults, model };
+    if (input.mode === 'mock') {
+      config = { ...config, model: `mock:${feature}` };
+    }
+    resolved[feature] = config;
   }
 
   const validated = FeatureModelsSchema.parse(resolved) as ResolvedFeatureModels;
 
-  if (env.mode === 'auto') {
+  if (input.mode === 'auto') {
     for (const [feature, config] of Object.entries(validated) as Array<
       [AiFeatureName, FeatureModelConfig]
     >) {
@@ -87,16 +105,6 @@ export function resolveFeatureModels(env: {
       if (speech && provider !== 'google' && provider !== 'mock') {
         throw new Error(
           `AI config error: feature "${feature}" needs speech capability, which only the google provider offers (got "${config.model}").`,
-        );
-      }
-      if (provider === 'google' && !env.hasGoogleKey) {
-        throw new Error(
-          `AI config error: feature "${feature}" uses ${config.model} but GOOGLE_GENERATIVE_AI_API_KEY is not set. Set the key or AI_PROVIDER_MODE=mock.`,
-        );
-      }
-      if (provider === 'bedrock' && !env.hasBedrockAuth) {
-        throw new Error(
-          `AI config error: feature "${feature}" uses ${config.model} but no Bedrock auth is configured (AWS_BEARER_TOKEN_BEDROCK). Set the key, override AI_MODEL_${feature.toUpperCase().replace(/-/g, '_')}, or use AI_PROVIDER_MODE=mock.`,
         );
       }
     }

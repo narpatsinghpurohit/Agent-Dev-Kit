@@ -14,3 +14,4 @@ export * from './generated/models';
 export * from './generated/auth/auth';
 export * from './generated/tasks/tasks';
 export * from './generated/ai/ai';
+export * from './generated/settings/settings';

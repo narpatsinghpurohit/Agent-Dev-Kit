@@ -1,8 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import type { Env } from '../../config/env.schema';
+import { SettingsService } from '../../settings/settings.service';
 import { AiBudgetDay, AiUsage } from './ai-usage.schema';
 
 export interface UsageTotals {
@@ -41,11 +40,12 @@ export class AiUsageService {
   constructor(
     @InjectModel(AiUsage.name) private readonly usage: Model<AiUsage>,
     @InjectModel(AiBudgetDay.name) private readonly budget: Model<AiBudgetDay>,
-    private readonly configService: ConfigService<Env, true>,
+    private readonly settingsService: SettingsService,
   ) {}
 
   async reserve(userId: string, estimatedTokens: number): Promise<BudgetReservation> {
-    const dailyBudget = this.configService.get('AI_DAILY_TOKEN_BUDGET', { infer: true });
+    // Runtime setting — admins can raise/lower the cap without a restart.
+    const dailyBudget = this.settingsService.getAi().dailyTokenBudget;
     const owner = new Types.ObjectId(userId);
     const day = new Date().toISOString().slice(0, 10);
 

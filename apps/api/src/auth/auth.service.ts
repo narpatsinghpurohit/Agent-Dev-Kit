@@ -5,6 +5,7 @@ import type { Types } from 'mongoose';
 import type { AuthResponse, LoginInput, SignupInput } from '@repo/schemas';
 import type { Env } from '../config/env.schema';
 import { Mailer } from '../mailer/mailer.service';
+import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
 import { OneTimeTokensRepository } from './one-time-tokens.repository';
 import { SessionsRepository } from './sessions.repository';
@@ -28,6 +29,7 @@ export class AuthService {
     private readonly oneTimeTokensRepository: OneTimeTokensRepository,
     private readonly tokenService: TokenService,
     private readonly configService: ConfigService<Env, true>,
+    private readonly settingsService: SettingsService,
     private readonly mailer: Mailer,
   ) {}
 
@@ -51,10 +53,8 @@ export class AuthService {
     if (!user || !valid) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    if (
-      this.configService.get('REQUIRE_EMAIL_VERIFICATION', { infer: true }) &&
-      !user.emailVerified
-    ) {
+    // Runtime flag from the settings store (env value is only the seed).
+    if (this.settingsService.getGeneral().requireEmailVerification && !user.emailVerified) {
       throw new UnauthorizedException('Email not verified — check your inbox');
     }
     return this.issueTokens(user._id, userAgent);

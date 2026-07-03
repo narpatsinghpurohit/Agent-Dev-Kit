@@ -36,3 +36,5 @@ lint-banned with an error message pointing back here.
 - **.cursorrules** — deprecated single-file format; Cursor guidance lives in `.cursor/rules/*.mdc`.
 - **`ai/test` at runtime** — it is a test-only entrypoint that crashes in production code; the keyless demo path is the custom mock provider in `apps/api/src/ai/providers/mock` (banned outside tests in `packages/eslint-config/nestjs.js`).
 - **Direct `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` imports outside `apps/api/src/ai/`** — feature code resolves models only through the registry (`models.languageModel('<feature>')`), so providers/params/env-overrides stay in one place (lint-banned in both eslint configs).
+
+- Env vars, runtime settings, flags, provider keys → [configuration.md](configuration.md)

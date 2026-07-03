@@ -1,6 +1,68 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/settings": {
+      "get": {
+        "operationId": "settingsGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Current runtime settings (secrets masked)",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "settingsUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update runtime settings (validated as a whole before saving)",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
     "/api/auth/signup": {
       "post": {
         "operationId": "authSignup",
@@ -641,6 +703,232 @@
       }
     },
     "schemas": {
+      "SettingsResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "ai": {
+            "type": "object",
+            "properties": {
+              "providerMode": {
+                "type": "string",
+                "enum": [
+                  "mock",
+                  "auto"
+                ]
+              },
+              "awsRegion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              },
+              "dailyTokenBudget": {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              },
+              "copilot": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "pattern": "^(google|bedrock|mock):.+$"
+                  },
+                  "temperature": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "maxOutputTokens": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32768
+                  },
+                  "topP": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "model",
+                  "temperature",
+                  "maxOutputTokens",
+                  "topP"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "providerMode",
+              "awsRegion",
+              "dailyTokenBudget",
+              "copilot"
+            ],
+            "additionalProperties": false
+          },
+          "general": {
+            "type": "object",
+            "properties": {
+              "corsOrigins": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/[^\\s/]+$"
+                }
+              },
+              "requireEmailVerification": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "corsOrigins",
+              "requireEmailVerification"
+            ],
+            "additionalProperties": false
+          },
+          "secrets": {
+            "type": "object",
+            "properties": {
+              "googleApiKey": {
+                "type": "object",
+                "properties": {
+                  "set": {
+                    "type": "boolean"
+                  },
+                  "hint": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "set",
+                  "hint"
+                ],
+                "additionalProperties": false
+              },
+              "bedrockApiKey": {
+                "type": "object",
+                "properties": {
+                  "set": {
+                    "type": "boolean"
+                  },
+                  "hint": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "set",
+                  "hint"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "googleApiKey",
+              "bedrockApiKey"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "ai",
+          "general",
+          "secrets"
+        ],
+        "additionalProperties": false
+      },
+      "SettingsUpdateDto": {
+        "type": "object",
+        "properties": {
+          "ai": {
+            "type": "object",
+            "properties": {
+              "providerMode": {
+                "type": "string",
+                "enum": [
+                  "mock",
+                  "auto"
+                ]
+              },
+              "awsRegion": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              },
+              "dailyTokenBudget": {
+                "type": "integer",
+                "exclusiveMinimum": true,
+                "maximum": 9007199254740991,
+                "minimum": 0
+              },
+              "copilot": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "pattern": "^(google|bedrock|mock):.+$"
+                  },
+                  "temperature": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "maxOutputTokens": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32768
+                  },
+                  "topP": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          },
+          "general": {
+            "type": "object",
+            "properties": {
+              "corsOrigins": {
+                "minItems": 1,
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^https?:\\/\\/[^\\s/]+$"
+                }
+              },
+              "requireEmailVerification": {
+                "type": "boolean"
+              }
+            }
+          },
+          "secrets": {
+            "type": "object",
+            "properties": {
+              "googleApiKey": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 512,
+                "nullable": true
+              },
+              "bedrockApiKey": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 512,
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
       "SignupDto": {
         "type": "object",
         "properties": {
@@ -693,6 +981,13 @@
               "emailVerified": {
                 "type": "boolean"
               },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "member"
+                ]
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time",
@@ -704,6 +999,7 @@
               "email",
               "name",
               "emailVerified",
+              "role",
               "createdAt"
             ],
             "additionalProperties": false
@@ -768,6 +1064,13 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "member"
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -779,6 +1082,7 @@
           "email",
           "name",
           "emailVerified",
+          "role",
           "createdAt"
         ],
         "additionalProperties": false

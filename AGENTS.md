@@ -52,6 +52,7 @@ lives in `docs/guidelines/`. Read the pointer doc before working in an unfamilia
 14. Tests accompany every change; web tests use the orval MSW handlers from `@repo/api-client/mocks`, never hand-written fetch mocks. detail: docs/guidelines/testing.md
 15. `react-router-dom` is banned everywhere (stale-training trap) — this repo uses TanStack Router. detail: docs/guidelines/component-structure.md
 16. All API errors leave through the `ErrorResponseSchema` envelope (`AllExceptionsFilter`). detail: docs/guidelines/error-handling.md
+17. Config is read via `ConfigService` (boot) or `SettingsService` (runtime) — never `process.env` in feature code; new vars follow the env-vs-runtime decision tree. detail: docs/guidelines/configuration.md
 
 ## Definition of Done
 
@@ -74,3 +75,4 @@ lives in `docs/guidelines/`. Read the pointer doc before working in an unfamilia
 - Touching anything that calls a model (chat, speech, tools, budgets)? read `docs/guidelines/ai.md`
 - Touching tests at any layer? read `docs/guidelines/testing.md`
 - Touching auth, ownership, input handling, or secrets? read `docs/guidelines/security.md`
+- Touching env vars, runtime settings, flags, or provider keys? read `docs/guidelines/configuration.md`

@@ -15,6 +15,9 @@ export class User {
   @Prop({ default: false })
   emailVerified: boolean;
 
+  @Prop({ type: String, enum: ['admin', 'member'], default: 'member' })
+  role: 'admin' | 'member';
+
   // set by { timestamps: true }
   createdAt: Date;
   updatedAt: Date;

@@ -4,6 +4,7 @@ import { authStore, logout } from '../../lib/auth';
 
 export interface AppShellViewModel {
   userName: string;
+  isAdmin: boolean;
   copilotOpen: boolean;
   onToggleCopilot: () => void;
   onLogout: () => void;
@@ -20,6 +21,7 @@ export function useAppShell(): AppShellViewModel {
 
   return {
     userName: auth.user?.name ?? '',
+    isAdmin: auth.user?.role === 'admin',
     copilotOpen,
     onToggleCopilot: useCallback(() => setCopilotOpen((open) => !open), []),
     onLogout,

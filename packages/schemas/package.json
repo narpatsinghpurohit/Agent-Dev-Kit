@@ -64,6 +64,16 @@
         "types": "./dist/ai.d.cts",
         "default": "./dist/ai.cjs"
       }
+    },
+    "./settings": {
+      "import": {
+        "types": "./dist/settings.d.ts",
+        "default": "./dist/settings.js"
+      },
+      "require": {
+        "types": "./dist/settings.d.cts",
+        "default": "./dist/settings.cjs"
+      }
     }
   },
   "scripts": {

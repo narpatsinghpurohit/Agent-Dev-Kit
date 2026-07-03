@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { AuthCard, FieldErrors, inputClass, primaryButtonClass } from '../components/auth-card';
+import { inputClass, primaryButtonClass } from '../../../components/form-styles';
+import { AuthCard, FieldErrors } from '../components/auth-card';
 import type { SignupViewModel } from './signup.hook';
 
 export function SignupView({ form, serverError }: SignupViewModel) {

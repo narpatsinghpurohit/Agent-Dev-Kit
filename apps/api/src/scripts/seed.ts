@@ -30,6 +30,14 @@ async function main(): Promise<void> {
     console.log(`Demo user ${email} already exists`);
   }
 
+  // The demo user administers runtime settings (/settings in the web app).
+  const { getModelToken } = await import('@nestjs/mongoose');
+  const userModel = app.get<{
+    updateOne: (f: unknown, u: unknown) => { exec: () => Promise<unknown> };
+  }>(getModelToken('User'));
+  await userModel.updateOne({ _id: user._id }, { $set: { role: 'admin' } }).exec();
+  console.log('Demo user has the admin role');
+
   const ownerId = user._id.toString();
   const existing = await tasksService.list(ownerId, { limit: 1 });
   if (existing.items.length === 0) {

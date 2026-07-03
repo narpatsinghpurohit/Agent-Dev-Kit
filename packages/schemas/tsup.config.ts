@@ -10,6 +10,7 @@ export default defineConfig({
     'src/user.ts',
     'src/tasks.ts',
     'src/ai.ts',
+    'src/settings.ts',
   ],
   format: ['esm', 'cjs'],
   // tsup's dts pass injects the deprecated `baseUrl`, which TypeScript 6
