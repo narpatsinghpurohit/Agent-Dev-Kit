@@ -1,0 +1,18 @@
+# Deterministic quality gates for every contributor — human, Claude Code, or Cursor.
+# CI runs the same checks via `turbo run lint check-types test --affected`.
+pre-commit:
+  parallel: true
+  jobs:
+    - name: eslint
+      glob: '*.{ts,tsx,js,mjs,cjs}'
+      run: pnpm exec eslint --fix --no-warn-ignored {staged_files}
+      stage_fixed: true
+    - name: prettier
+      glob: '*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}'
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm exec commitlint --edit {1}

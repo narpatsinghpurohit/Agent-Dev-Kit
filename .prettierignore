@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+dist/
+coverage/
+.turbo/
+playwright-report/
+test-results/
+
+# generated artifacts — regenerate, never reformat by hand
+**/routeTree.gen.ts
+packages/api-client/src/generated/
+apps/api/openapi.json
