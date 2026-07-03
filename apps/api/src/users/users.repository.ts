@@ -5,8 +5,12 @@ import { User } from './user.schema';
 
 export interface CreateUserData {
   email: string;
-  passwordHash: string;
   name: string;
+  /** Absent for Google-only accounts. */
+  passwordHash?: string;
+  googleId?: string;
+  emailVerified?: boolean;
+  role?: 'admin' | 'member';
 }
 
 /** Thin data access — no business rules. Mongoose types stop at the service layer. */
@@ -16,6 +20,10 @@ export class UsersRepository {
 
   async findByEmail(email: string) {
     return this.model.findOne({ email: email.toLowerCase() }).lean();
+  }
+
+  async findByGoogleId(googleId: string) {
+    return this.model.findOne({ googleId }).lean();
   }
 
   async findById(id: string) {
@@ -34,5 +42,13 @@ export class UsersRepository {
 
   async setPasswordHash(userId: Types.ObjectId, passwordHash: string) {
     await this.model.updateOne({ _id: userId }, { $set: { passwordHash } });
+  }
+
+  async linkGoogleAccount(userId: Types.ObjectId, googleId: string) {
+    await this.model.updateOne({ _id: userId }, { $set: { googleId } });
+  }
+
+  async setRole(userId: Types.ObjectId, role: 'admin' | 'member') {
+    await this.model.updateOne({ _id: userId }, { $set: { role } });
   }
 }

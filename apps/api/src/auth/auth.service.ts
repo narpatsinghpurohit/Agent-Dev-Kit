@@ -2,17 +2,16 @@ import { hash, verify } from '@node-rs/argon2';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Types } from 'mongoose';
-import type { AuthResponse, LoginInput, SignupInput } from '@repo/schemas';
+import type { AuthResponse, GoogleLoginInput, LoginInput, SignupInput } from '@repo/schemas';
+import { ARGON2_OPTIONS } from '../common/argon2';
 import type { Env } from '../config/env.schema';
 import { Mailer } from '../mailer/mailer.service';
 import { SettingsService } from '../settings/settings.service';
 import { UsersService } from '../users/users.service';
+import { GoogleTokenVerifier } from './google-token.verifier';
 import { OneTimeTokensRepository } from './one-time-tokens.repository';
 import { SessionsRepository } from './sessions.repository';
 import { TokenService } from './token.service';
-
-// OWASP-recommended argon2id parameters.
-const ARGON2_OPTIONS = { memoryCost: 65536, timeCost: 3, parallelism: 1 } as const;
 
 export interface IssuedTokens extends AuthResponse {
   /** Always present here; the controller decides cookie vs body transport. */
@@ -31,6 +30,7 @@ export class AuthService {
     private readonly configService: ConfigService<Env, true>,
     private readonly settingsService: SettingsService,
     private readonly mailer: Mailer,
+    private readonly googleTokenVerifier: GoogleTokenVerifier,
   ) {}
 
   async signup(input: SignupInput, userAgent?: string): Promise<IssuedTokens> {
@@ -58,6 +58,53 @@ export class AuthService {
       throw new UnauthorizedException('Email not verified — check your inbox');
     }
     return this.issueTokens(user._id, userAgent);
+  }
+
+  /**
+   * Exchange a verified Google ID token for the app's own tokens.
+   * Every failure branch throws the SAME generic 401 — the endpoint must
+   * not be an oracle for which check failed or whether an account exists.
+   */
+  async googleLogin(input: GoogleLoginInput, userAgent?: string): Promise<IssuedTokens> {
+    const clientId = this.settingsService.getGeneral().googleClientId;
+    if (!clientId) throw new UnauthorizedException('Google sign-in failed');
+
+    const profile = await this.googleTokenVerifier.verify(input.credential, clientId);
+    // An unverified email claim is untrusted input: creating or linking on
+    // it would let anyone squat someone else's address (pre-hijack attack).
+    if (!profile?.emailVerified) throw new UnauthorizedException('Google sign-in failed');
+
+    // Accounts key on Google's stable `sub`; email is only for linking.
+    const bySub = await this.usersService.findByGoogleId(profile.sub);
+    if (bySub) return this.issueTokens(bySub._id, userAgent);
+
+    const byEmail = await this.usersService.findByEmail(profile.email);
+    if (byEmail) {
+      // Auto-link only when OUR flow verified the address — an unverified
+      // password account with this email could belong to a squatter.
+      if (!byEmail.emailVerified) throw new UnauthorizedException('Google sign-in failed');
+      await this.usersService.linkGoogleAccount(byEmail._id, profile.sub);
+      // Linking is a credential change: any pre-link session (possibly a
+      // pre-hijacker holding the password) dies on every device.
+      await this.sessionsRepository.revokeAllForUser(byEmail._id);
+      return this.issueTokens(byEmail._id, userAgent);
+    }
+
+    try {
+      const user = await this.usersService.createUser({
+        email: profile.email,
+        name: profile.name?.trim() || profile.email.split('@')[0] || 'New user',
+        googleId: profile.sub,
+        emailVerified: true, // verified by Google, enforced above
+      });
+      return this.issueTokens(user._id, userAgent);
+    } catch (error) {
+      // Two concurrent first-time logins: the loser re-reads the winner's
+      // account instead of surfacing a duplicate-key 500.
+      const winner = await this.usersService.findByGoogleId(profile.sub);
+      if (winner) return this.issueTokens(winner._id, userAgent);
+      throw error;
+    }
   }
 
   /**

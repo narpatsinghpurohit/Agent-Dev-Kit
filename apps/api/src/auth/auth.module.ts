@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { GoogleTokenVerifier } from './google-token.verifier';
 import { OneTimeToken, OneTimeTokenSchema } from './one-time-token.schema';
 import { OneTimeTokensRepository } from './one-time-tokens.repository';
 import {
@@ -37,7 +38,14 @@ import { TokenService } from './token.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, SessionsRepository, OneTimeTokensRepository, AuthGuard],
+  providers: [
+    AuthService,
+    TokenService,
+    SessionsRepository,
+    OneTimeTokensRepository,
+    AuthGuard,
+    GoogleTokenVerifier,
+  ],
   exports: [TokenService, AuthGuard],
 })
 export class AuthModule {}

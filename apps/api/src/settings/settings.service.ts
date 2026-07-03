@@ -284,6 +284,8 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
     return {
       corsOrigins: this.get('CORS_ORIGINS'),
       requireEmailVerification: this.get('REQUIRE_EMAIL_VERIFICATION'),
+      // `||` (not `??`): an unset-but-present env var arrives as ''.
+      googleClientId: this.get('GOOGLE_OAUTH_CLIENT_ID') || null,
     };
   }
 

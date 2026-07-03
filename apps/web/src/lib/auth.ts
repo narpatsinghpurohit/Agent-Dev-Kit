@@ -1,4 +1,5 @@
 import {
+  authGoogleLogin,
   authLogin,
   authLogout,
   authSignup,
@@ -7,7 +8,7 @@ import {
   type SessionUpdate,
   type SessionUser,
 } from '@repo/api-client';
-import type { LoginInput, SignupInput } from '@repo/schemas';
+import type { GoogleLoginInput, LoginInput, SignupInput } from '@repo/schemas';
 
 /**
  * Auth state for the SPA. The access token lives in a module-scope variable
@@ -73,6 +74,12 @@ export async function login(input: LoginInput): Promise<void> {
 
 export async function signup(input: SignupInput): Promise<void> {
   const session = await authSignup(input);
+  applySession(session as SessionUpdate);
+}
+
+/** Exchange a Google ID-token credential for the app's own session. */
+export async function loginWithGoogle(input: GoogleLoginInput): Promise<void> {
+  const session = await authGoogleLogin(input);
   applySession(session as SessionUpdate);
 }
 

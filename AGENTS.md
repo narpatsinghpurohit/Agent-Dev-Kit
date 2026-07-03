@@ -21,18 +21,18 @@ lives in `docs/guidelines/`. Read the pointer doc before working in an unfamilia
 
 ## Commands
 
-| Command                                                       | What it does                                                                      |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `pnpm dev`                                                    | All dev servers via turbo (api on :3000, web on :5173).                           |
-| `pnpm build` / `pnpm lint` / `pnpm check-types` / `pnpm test` | Turbo across all workspaces.                                                      |
-| `pnpm test:e2e`                                               | API supertest e2e + web Playwright e2e.                                           |
-| `pnpm gen:client`                                             | Regenerate the API client (turbo chain: api build → emit-openapi → orval).        |
-| `pnpm db:up` / `pnpm db:seed`                                 | Docker Mongo replica set / seed demo data (demo@example.com / demo-password-123). |
-| `pnpm format` / `pnpm syncpack:lint`                          | Prettier / catalog-version drift check.                                           |
-| `pnpm --filter @repo/api dev`                                 | API only (needs `pnpm db:up` first).                                              |
-| `pnpm --filter @repo/web dev`                                 | Web only (proxies `/api` to :3000).                                               |
-| `pnpm --filter @repo/web routes:generate`                     | Regenerate `src/routeTree.gen.ts` (also happens during `vite dev`).               |
-| `pnpm --filter @repo/schemas build`                           | Rebuild the compiled schemas package after editing it.                            |
+| Command                                                       | What it does                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                    | All dev servers via turbo (api on :3000, web on :5173).                                                                                           |
+| `pnpm build` / `pnpm lint` / `pnpm check-types` / `pnpm test` | Turbo across all workspaces.                                                                                                                      |
+| `pnpm test:e2e`                                               | API supertest e2e + web Playwright e2e.                                                                                                           |
+| `pnpm gen:client`                                             | Regenerate the API client (turbo chain: api build → emit-openapi → orval).                                                                        |
+| `pnpm db:up` / `pnpm db:seed`                                 | Docker Mongo replica set / seed example tasks for the bootstrap admin (from ADMIN_EMAIL/ADMIN_PASSWORD in apps/api/.env — there is no demo user). |
+| `pnpm format` / `pnpm syncpack:lint`                          | Prettier / catalog-version drift check.                                                                                                           |
+| `pnpm --filter @repo/api dev`                                 | API only (needs `pnpm db:up` first).                                                                                                              |
+| `pnpm --filter @repo/web dev`                                 | Web only (proxies `/api` to :3000).                                                                                                               |
+| `pnpm --filter @repo/web routes:generate`                     | Regenerate `src/routeTree.gen.ts` (also happens during `vite dev`).                                                                               |
+| `pnpm --filter @repo/schemas build`                           | Rebuild the compiled schemas package after editing it.                                                                                            |
 
 ## Non-negotiables
 

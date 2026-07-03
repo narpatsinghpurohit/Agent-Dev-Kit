@@ -24,7 +24,11 @@ const fixture = {
       topP: null,
     },
   },
-  general: { corsOrigins: ['http://localhost:5173'], requireEmailVerification: false },
+  general: {
+    corsOrigins: ['http://localhost:5173'],
+    requireEmailVerification: false,
+    googleClientId: null,
+  },
   secrets: {
     googleApiKey: { set: true, hint: '…1234' },
     bedrockApiKey: { set: false, hint: null },

@@ -63,6 +63,27 @@
         ]
       }
     },
+    "/api/auth/config": {
+      "get": {
+        "operationId": "authConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthConfigDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/signup": {
       "post": {
         "operationId": "authSignup",
@@ -122,6 +143,46 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "operationId": "authGoogleLogin",
+        "parameters": [
+          {
+            "name": "user-agent",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleLoginDto"
               }
             }
           }
@@ -782,11 +843,19 @@
               },
               "requireEmailVerification": {
                 "type": "boolean"
+              },
+              "googleClientId": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 200,
+                "default": null,
+                "nullable": true
               }
             },
             "required": [
               "corsOrigins",
-              "requireEmailVerification"
+              "requireEmailVerification",
+              "googleClientId"
             ],
             "additionalProperties": false
           },
@@ -907,6 +976,13 @@
               },
               "requireEmailVerification": {
                 "type": "boolean"
+              },
+              "googleClientId": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 200,
+                "default": null,
+                "nullable": true
               }
             }
           },
@@ -928,6 +1004,19 @@
             }
           }
         }
+      },
+      "AuthConfigDto_Output": {
+        "type": "object",
+        "properties": {
+          "googleClientId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "googleClientId"
+        ],
+        "additionalProperties": false
       },
       "SignupDto": {
         "type": "object",
@@ -1032,6 +1121,19 @@
         "required": [
           "email",
           "password"
+        ]
+      },
+      "GoogleLoginDto": {
+        "type": "object",
+        "properties": {
+          "credential": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "credential"
         ]
       },
       "RefreshRequestDto": {

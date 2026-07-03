@@ -1,42 +1,43 @@
 import { NestFactory } from '@nestjs/core';
 
 /**
- * Idempotent demo data: a demo user and a handful of tasks across statuses.
+ * Idempotent demo data: a handful of tasks for the bootstrap admin.
+ * The admin account itself comes from ADMIN_EMAIL/ADMIN_PASSWORD in
+ * apps/api/.env — AdminBootstrapService creates it during context init,
+ * so by the time this runs the account exists.
  * Usage: pnpm db:seed  (requires Mongo from `pnpm db:up`)
  */
 async function main(): Promise<void> {
   const { AppModule } = await import('../app.module.js');
   const app = await NestFactory.createApplicationContext(AppModule, { logger: false });
 
+  const { ConfigService } = await import('@nestjs/config');
   const { UsersService } = await import('../users/users.service.js');
   const { TasksService } = await import('../tasks/tasks.service.js');
-  const { hash } = await import('@node-rs/argon2');
 
+  const configService = app.get(ConfigService);
   const usersService = app.get(UsersService);
   const tasksService = app.get(TasksService);
 
-  const email = 'demo@example.com';
-  const password = 'demo-password-123';
-
-  let user = await usersService.findByEmail(email);
-  if (!user) {
-    user = await usersService.createUser({
-      email,
-      name: 'Demo User',
-      passwordHash: await hash(password, { memoryCost: 65536, timeCost: 3, parallelism: 1 }),
-    });
-    console.log(`Created demo user ${email} (password: ${password})`);
-  } else {
-    console.log(`Demo user ${email} already exists`);
+  const email = configService.get<string | undefined>('ADMIN_EMAIL');
+  if (!email) {
+    console.error(
+      'ADMIN_EMAIL/ADMIN_PASSWORD are not set in apps/api/.env — nothing to seed.\n' +
+        'Copy .env.example (it ships dev-only admin credentials) and re-run.',
+    );
+    process.exitCode = 1;
+    await app.close();
+    return;
   }
 
-  // The demo user administers runtime settings (/settings in the web app).
-  const { getModelToken } = await import('@nestjs/mongoose');
-  const userModel = app.get<{
-    updateOne: (f: unknown, u: unknown) => { exec: () => Promise<unknown> };
-  }>(getModelToken('User'));
-  await userModel.updateOne({ _id: user._id }, { $set: { role: 'admin' } }).exec();
-  console.log('Demo user has the admin role');
+  const user = await usersService.findByEmail(email);
+  if (!user) {
+    console.error(`Admin ${email} was not bootstrapped — check the API logs.`);
+    process.exitCode = 1;
+    await app.close();
+    return;
+  }
+  console.log(`Admin account: ${email} (from ADMIN_EMAIL)`);
 
   const ownerId = user._id.toString();
   const existing = await tasksService.list(ownerId, { limit: 1 });

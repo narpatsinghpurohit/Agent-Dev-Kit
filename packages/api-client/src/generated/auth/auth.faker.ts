@@ -10,14 +10,19 @@ import {
 } from '@faker-js/faker';
 
 import type {
+  AuthConfigDtoOutput,
   AuthResponseDtoOutput,
   UserDtoOutput
 } from '../models';
 
 
+export const getAuthConfigResponseMock = (overrideResponse: Partial<Extract<AuthConfigDtoOutput, object>> = {}): AuthConfigDtoOutput => ({googleClientId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), ...overrideResponse})
+
 export const getAuthSignupResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getAuthLoginResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getAuthGoogleLoginResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getAuthRefreshResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 

@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { LoginSchema } from '@repo/schemas';
 import { login } from '../../../lib/auth';
+import { useGoogleSignin } from '../google-signin/google-signin.hook';
 
 /**
  * ViewModel for the login screen: form state, submission, server errors.
@@ -11,6 +12,7 @@ import { login } from '../../../lib/auth';
 export function useLogin(redirectTo?: string) {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
+  const google = useGoogleSignin(redirectTo);
 
   const form = useForm({
     defaultValues: { email: '', password: '' },
@@ -26,7 +28,7 @@ export function useLogin(redirectTo?: string) {
     },
   });
 
-  return { form, serverError };
+  return { form, serverError, google };
 }
 
 export type LoginViewModel = ReturnType<typeof useLogin>;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LoginSchema, ResetPasswordSchema, SignupSchema } from './auth';
+import { GoogleLoginSchema, LoginSchema, ResetPasswordSchema, SignupSchema } from './auth';
 
 describe('SignupSchema', () => {
   it('accepts a valid signup', () => {
@@ -26,6 +26,14 @@ describe('SignupSchema', () => {
 describe('LoginSchema', () => {
   it('does not enforce password policy on login (only on set)', () => {
     expect(LoginSchema.safeParse({ email: 'a@example.com', password: 'x' }).success).toBe(true);
+  });
+});
+
+describe('GoogleLoginSchema', () => {
+  it('caps the credential size (Google ID tokens are ~1.6KB)', () => {
+    expect(GoogleLoginSchema.safeParse({ credential: 'a'.repeat(100) }).success).toBe(true);
+    expect(GoogleLoginSchema.safeParse({ credential: 'tiny' }).success).toBe(false);
+    expect(GoogleLoginSchema.safeParse({ credential: 'a'.repeat(5000) }).success).toBe(false);
   });
 });
 

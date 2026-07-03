@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authConfigDtoOutput';
 export * from './authResponseDtoOutput';
 export * from './authResponseDtoOutputUser';
 export * from './authResponseDtoOutputUserRole';
@@ -14,6 +15,7 @@ export * from './chatRequestDtoMessagesItem';
 export * from './chatRequestDtoMessagesItemPartsItem';
 export * from './chatRequestDtoMessagesItemRole';
 export * from './forgotPasswordDto';
+export * from './googleLoginDto';
 export * from './loginDto';
 export * from './refreshRequestDto';
 export * from './resendVerificationDto';

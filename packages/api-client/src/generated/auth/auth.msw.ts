@@ -18,19 +18,36 @@ import type {
 } from 'msw';
 
 import type {
+  AuthConfigDtoOutput,
   AuthResponseDtoOutput,
   UserDtoOutput
 } from '../models';
 
 
+export const getAuthConfigResponseMock = (overrideResponse: Partial<Extract<AuthConfigDtoOutput, object>> = {}): AuthConfigDtoOutput => ({googleClientId: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), ...overrideResponse})
+
 export const getAuthSignupResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getAuthLoginResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getAuthGoogleLoginResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getAuthRefreshResponseMock = (overrideResponse: Partial<Extract<AuthResponseDtoOutput, object>> = {}): AuthResponseDtoOutput => ({accessToken: faker.string.alpha({length: {min: 10, max: 20}}), user: {id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z'}, refreshToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getAuthMeResponseMock = (overrideResponse: Partial<Extract<UserDtoOutput, object>> = {}): UserDtoOutput => ({id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), email: faker.internet.email(), name: faker.string.alpha({length: {min: 1, max: 100}}), emailVerified: faker.datatype.boolean(), role: faker.helpers.arrayElement(['admin','member'] as const), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
+
+export const getAuthConfigMockHandler = (overrideResponse?: AuthConfigDtoOutput | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AuthConfigDtoOutput> | AuthConfigDtoOutput), options?: RequestHandlerOptions) => {
+  return http.get('*/api/auth/config', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAuthConfigResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
 
 export const getAuthSignupMockHandler = (overrideResponse?: AuthResponseDtoOutput | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AuthResponseDtoOutput> | AuthResponseDtoOutput), options?: RequestHandlerOptions) => {
   return http.post('*/api/auth/signup', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
@@ -51,6 +68,18 @@ export const getAuthLoginMockHandler = (overrideResponse?: AuthResponseDtoOutput
     return HttpResponse.json(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getAuthLoginResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getAuthGoogleLoginMockHandler = (overrideResponse?: AuthResponseDtoOutput | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<AuthResponseDtoOutput> | AuthResponseDtoOutput), options?: RequestHandlerOptions) => {
+  return http.post('*/api/auth/google', async (info: Parameters<Parameters<typeof http.post>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAuthGoogleLoginResponseMock(),
       { status: 200
       })
   }, options)
@@ -130,8 +159,10 @@ export const getAuthResendVerificationMockHandler = (overrideResponse?: void | (
   }, options)
 }
 export const getAuthMock = () => [
+  getAuthConfigMockHandler(),
   getAuthSignupMockHandler(),
   getAuthLoginMockHandler(),
+  getAuthGoogleLoginMockHandler(),
   getAuthRefreshMockHandler(),
   getAuthLogoutMockHandler(),
   getAuthMeMockHandler(),

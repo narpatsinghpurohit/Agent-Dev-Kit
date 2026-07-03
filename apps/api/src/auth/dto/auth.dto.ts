@@ -1,7 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import {
+  AuthConfigSchema,
   AuthResponseSchema,
   ForgotPasswordSchema,
+  GoogleLoginSchema,
   LoginSchema,
   RefreshRequestSchema,
   ResendVerificationSchema,
@@ -22,3 +24,5 @@ export class ResetPasswordDto extends createZodDto(ResetPasswordSchema) {}
 export class VerifyEmailDto extends createZodDto(VerifyEmailSchema) {}
 export class ResendVerificationDto extends createZodDto(ResendVerificationSchema) {}
 export class UserDto extends createZodDto(UserSchema) {}
+export class GoogleLoginDto extends createZodDto(GoogleLoginSchema) {}
+export class AuthConfigDto extends createZodDto(AuthConfigSchema) {}

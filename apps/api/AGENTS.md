@@ -3,7 +3,8 @@
 ## Layout
 
 - `src/main.ts` + `src/app.setup.ts` — bootstrap; `app.setup.ts` is shared with e2e tests so they run the real middleware stack (helmet, cookie-parser, CORS, global prefix `api`).
-- `src/auth/` — controller, plain `AuthGuard`, `TokenService`, sessions + refresh rotation.
+- `src/auth/` — controller, plain `AuthGuard`, `TokenService`, sessions + refresh rotation, `GoogleTokenVerifier` (the only google-auth-library import). detail: docs/guidelines/security.md
+- `src/users/` — users + `AdminBootstrapService` (creates/promotes the admin from ADMIN_EMAIL/ADMIN_PASSWORD on boot; no demo user).
 - `src/tasks/` — controller → service → repository; every repo query filters `ownerId`.
 - `src/ai/` — model registry, feature-models, copilot chat, speech, usage budget, mock provider. The ONLY place `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` may be imported (lint-enforced).
 - `src/settings/` — runtime settings: encrypted (AES-256-GCM) `app_settings` store, admin-only API, hot-reload subscribers. detail: docs/guidelines/configuration.md

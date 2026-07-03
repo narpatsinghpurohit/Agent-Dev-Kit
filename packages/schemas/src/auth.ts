@@ -39,6 +39,23 @@ export const RefreshRequestSchema = z
   .default({});
 export type RefreshRequest = z.infer<typeof RefreshRequestSchema>;
 
+/**
+ * Google sign-in: the GIS button hands the SPA an ID-token `credential`,
+ * which the API verifies server-side (signature, iss, aud, exp) and
+ * exchanges for the app's own tokens. ~1.6KB typical, 4KB hard cap.
+ */
+export const GoogleLoginSchema = z.object({
+  credential: z.string().min(20).max(4096),
+});
+export type GoogleLoginInput = z.infer<typeof GoogleLoginSchema>;
+
+/** Public auth capabilities for the login screen — no auth required. */
+export const AuthConfigSchema = z.object({
+  /** Google OAuth web client ID (public by design); null = Google sign-in disabled. */
+  googleClientId: z.string().nullable(),
+});
+export type AuthConfig = z.infer<typeof AuthConfigSchema>;
+
 export const ForgotPasswordSchema = z.object({ email: emailSchema });
 export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 

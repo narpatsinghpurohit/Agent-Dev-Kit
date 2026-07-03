@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { inputClass, primaryButtonClass } from '../../../components/form-styles';
 import { AuthCard, FieldErrors } from '../components/auth-card';
+import { GoogleSigninSection } from '../components/google-signin-section';
 import type { LoginViewModel } from './login.hook';
 
-export function LoginView({ form, serverError }: LoginViewModel) {
+export function LoginView({ form, serverError, google }: LoginViewModel) {
   return (
     <AuthCard title="Welcome back" subtitle="Sign in to your workspace">
       <form
@@ -61,6 +62,7 @@ export function LoginView({ form, serverError }: LoginViewModel) {
           )}
         </form.Subscribe>
       </form>
+      <GoogleSigninSection {...google} />
       <p className="mt-4 text-sm text-ink-dim">
         No account?{' '}
         <Link to="/signup" className="text-accent-soft hover:underline">

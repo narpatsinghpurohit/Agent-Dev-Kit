@@ -22,6 +22,10 @@ export class UsersService {
     return this.usersRepository.findByEmail(email);
   }
 
+  async findByGoogleId(googleId: string): Promise<LeanUser | null> {
+    return this.usersRepository.findByGoogleId(googleId);
+  }
+
   async findById(id: string): Promise<LeanUser | null> {
     return this.usersRepository.findById(id);
   }
@@ -32,6 +36,14 @@ export class UsersService {
 
   async setPasswordHash(userId: Types.ObjectId, passwordHash: string): Promise<void> {
     await this.usersRepository.setPasswordHash(userId, passwordHash);
+  }
+
+  async linkGoogleAccount(userId: Types.ObjectId, googleId: string): Promise<void> {
+    await this.usersRepository.linkGoogleAccount(userId, googleId);
+  }
+
+  async setRole(userId: Types.ObjectId, role: 'admin' | 'member'): Promise<void> {
+    await this.usersRepository.setRole(userId, role);
   }
 
   /** Map the Mongo document to the wire shape — the only place this happens. */

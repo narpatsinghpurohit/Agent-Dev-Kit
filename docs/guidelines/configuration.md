@@ -11,12 +11,14 @@ Ask: **"Would an operator want to change this without a deploy or restart?"**
 - **No — it's boot/infra config → `.env`** (validated by
   `apps/api/src/config/env.schema.ts`). Examples: `MONGODB_URI`, `PORT`,
   `NODE_ENV`, `JWT_ACCESS_SECRET`, token TTLs, `COOKIE_SECURE`,
-  `MAILER_DRIVER`, and `SETTINGS_ENCRYPTION_KEY` (it can never live in the
-  database it encrypts).
+  `MAILER_DRIVER`, `ADMIN_EMAIL`/`ADMIN_PASSWORD` (the admin must exist
+  before anyone can log in to edit settings), and `SETTINGS_ENCRYPTION_KEY`
+  (it can never live in the database it encrypts).
 - **Yes — it's runtime settings → the settings store** (`app_settings`
   collection via `apps/api/src/settings/settings.service.ts`). Examples:
   AI provider keys, provider mode, copilot model/params, daily token budget,
-  CORS origins, feature flags like `requireEmailVerification`.
+  CORS origins, the Google OAuth client ID (`general.googleClientId`),
+  feature flags like `requireEmailVerification`.
 
 Runtime settings still have an env var — but only as the **seed**:
 precedence is `database > .env > built-in default`. The kit boots with zero

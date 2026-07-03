@@ -22,22 +22,31 @@ describe('CopilotSettingsSchema', () => {
 });
 
 describe('GeneralSettingsSchema', () => {
+  const valid = {
+    corsOrigins: ['https://app.example.com'],
+    requireEmailVerification: false,
+    googleClientId: null,
+  };
+
   it('requires well-formed origins without paths', () => {
+    expect(GeneralSettingsSchema.safeParse(valid).success).toBe(true);
+    expect(
+      GeneralSettingsSchema.safeParse({ ...valid, corsOrigins: ['https://app.example.com/path'] })
+        .success,
+    ).toBe(false);
+    expect(GeneralSettingsSchema.safeParse({ ...valid, corsOrigins: [] }).success).toBe(false);
+  });
+
+  it('accepts a Google client ID or null (disabled), rejects junk', () => {
     expect(
       GeneralSettingsSchema.safeParse({
-        corsOrigins: ['https://app.example.com'],
-        requireEmailVerification: false,
+        ...valid,
+        googleClientId: '1234567890-abc.apps.googleusercontent.com',
       }).success,
     ).toBe(true);
-    expect(
-      GeneralSettingsSchema.safeParse({
-        corsOrigins: ['https://app.example.com/path'],
-        requireEmailVerification: false,
-      }).success,
-    ).toBe(false);
-    expect(
-      GeneralSettingsSchema.safeParse({ corsOrigins: [], requireEmailVerification: false }).success,
-    ).toBe(false);
+    expect(GeneralSettingsSchema.safeParse({ ...valid, googleClientId: 'short' }).success).toBe(
+      false,
+    );
   });
 });
 

@@ -34,6 +34,16 @@ const originSchema = z
 export const GeneralSettingsSchema = z.object({
   corsOrigins: z.array(originSchema).min(1).max(20),
   requireEmailVerification: z.boolean(),
+  /**
+   * Google OAuth web client ID. Public by design (the SPA reads it via
+   * /auth/config) — protection comes from the Authorized JavaScript
+   * Origins allow-list in Google Cloud Console plus the API's `aud`
+   * check. null disables Google sign-in entirely.
+   * `.default(null)`: stored `general` rows written before this field
+   * existed must keep parsing — a required key would silently revert
+   * every stored General setting to the env seeds on upgrade.
+   */
+  googleClientId: z.string().min(10).max(200).nullable().default(null),
 });
 export type GeneralSettings = z.infer<typeof GeneralSettingsSchema>;
 

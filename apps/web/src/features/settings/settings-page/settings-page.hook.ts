@@ -58,6 +58,7 @@ export function useSettingsPage() {
       dailyTokenBudget: String(settings.ai.dailyTokenBudget),
       corsOrigins: settings.general.corsOrigins.join('\n'),
       requireEmailVerification: settings.general.requireEmailVerification,
+      googleClientId: settings.general.googleClientId ?? '',
       googleApiKey: '',
       bedrockApiKey: '',
     },
@@ -80,6 +81,8 @@ export function useSettingsPage() {
             .map((origin: string) => origin.trim())
             .filter(Boolean),
           requireEmailVerification: value.requireEmailVerification,
+          // Empty = disable Google sign-in (the button disappears).
+          googleClientId: value.googleClientId.trim() || null,
         },
         // Blank secret inputs mean "leave unchanged" — omit them entirely.
         secrets: {

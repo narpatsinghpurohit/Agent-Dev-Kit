@@ -14,6 +14,7 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
     await this.sessionsRepository.revokeFamily(consumed.familyId);
     ```
 - **Transport policy** (`deliverTokens` in `apps/api/src/auth/auth.controller.ts`): browsers get the refresh token as an httpOnly cookie — `sameSite: 'strict'`, `secure` from `COOKIE_SECURE`, and `path: '/api/auth/refresh'` so it is only ever sent to the refresh endpoint — and the token is stripped from the JSON body. Cookie-less clients (mobile) send `x-refresh-transport: body` and receive it in the response instead.
+- **Roles:** `admin` (platform settings, admin screens) and `member` (app features only). Every signup — password or Google — is a `member`; the ONLY admin is bootstrapped from `ADMIN_EMAIL`/`ADMIN_PASSWORD` at boot (`apps/api/src/users/admin-bootstrap.service.ts` — create-or-promote, idempotent, never resets an existing password). Admin-only endpoints use `AdminGuard`; role never comes from client input.
 - **Password reset revokes everything:** `resetPassword` calls `sessionsRepository.revokeAllForUser` — a credential change logs out every device.
 
 ## Must
@@ -21,7 +22,7 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
 - **Authz is the global guard + explicit opt-out.** `AuthGuard` is registered as `APP_GUARD` in `apps/api/src/app.module.ts`; every route requires a Bearer access token unless decorated `@Public()`. New endpoints are protected by default — being public is the decision that must appear in the diff.
 - **Ownership is a query predicate.** Every tasks query filters by `ownerId` inside the repository (`findOne({ _id, ownerId })` in `apps/api/src/tasks/tasks.repository.ts`) — never fetch-then-check. Missing and foreign resources are indistinguishable: **404, never 403** (no existence leak).
 - **Take user identity from the JWT only** — `@CurrentUser()` in controllers, `userId` closure in copilot tools. Never from a body, query param, or model output.
-- **Hash by secret type:** passwords → argon2id with OWASP parameters (`{ memoryCost: 65536, timeCost: 3, parallelism: 1 }` in `auth.service.ts`); high-entropy opaque tokens (refresh, reset, verify) → single SHA-256 (`TokenService.hashToken`) — they have 256 bits of entropy, a slow hash adds nothing. Only hashes touch the database.
+- **Hash by secret type:** passwords → argon2id with OWASP parameters (`ARGON2_OPTIONS` in `apps/api/src/common/argon2.ts`); high-entropy opaque tokens (refresh, reset, verify) → single SHA-256 (`TokenService.hashToken`) — they have 256 bits of entropy, a slow hash adds nothing. Only hashes touch the database.
 - **Throttler TTLs are MILLISECONDS.** Global default `{ ttl: 60_000, limit: 100 }` (`app.module.ts`); credential endpoints tighten to `@Throttle({ default: { limit: 5, ttl: 60_000 } })`. `ThrottlerGuard` is registered before `AuthGuard` so brute-force traffic is rejected without token-verification work. Writing `ttl: 60` means 60 ms — effectively no limit.
 - **Prevent account enumeration everywhere:** `forgot-password` and `resend-verification` return 204 whether or not the account exists; login verifies against `DUMMY_ARGON2_HASH` when the user is missing so response timing is constant (`auth.service.ts`).
 - **Keep secrets out of logs.** nestjs-pino redacts `req.headers.authorization` and `req.headers.cookie` (`app.module.ts`); never log tokens, hashes, or passwords yourself. Secrets come from env (validated in `config/env.schema.ts`) or the encrypted runtime settings store (`app_settings`, AES-256-GCM — see docs/guidelines/configuration.md), never from code.
@@ -33,6 +34,19 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
     updateTask: 'user-approval',
     deleteTask: 'user-approval',
   ```
+
+## Sign in with Google
+
+`POST /auth/google` exchanges a GIS ID-token credential for the app's own tokens (`AuthService.googleLogin`). The rules, in order of how expensive they are to get wrong:
+
+- **Verification is server-side only** — `GoogleTokenVerifier` (`apps/api/src/auth/google-token.verifier.ts`, the one file importing `google-auth-library`) checks signature against Google's JWKS, both legal `iss` forms, `aud` === the runtime-configured client ID, and `exp`. The audience is passed per call because the client ID is a runtime setting.
+- **Key accounts on `sub`, never on email.** `sub` is permanent and never reused; a Google account's email can change. `googleId` has a sparse unique index; email lookup exists only for the linking path.
+- **`email_verified` is YOUR check** — the library does not enforce it. An unverified email claim is untrusted input: no account creation, no linking.
+- **Auto-link only twice-verified** (pre-hijack defense, USENIX '22): the token's `email_verified` must be true AND the existing local account must have verified its email through OUR flow. On link, `revokeAllForUser` — a pre-link session may belong to whoever squatted the password.
+- **One generic 401 for every failure class** (`'Google sign-in failed'`) — bad signature, wrong audience, expired, unverified, linking-denied are indistinguishable; the endpoint must not be an oracle.
+- **The client ID is public by design** (exposed via `GET /auth/config`); protection is the Authorized JavaScript Origins allow-list in Google Cloud Console + the server-side `aud` check. Never treat it as a secret; never expose a client SECRET (this flow has none).
+- **Never log the raw credential** — it is a ~1h bearer token. The endpoint carries the same 5/min throttle as password login.
+- The SPA uses GIS JS-callback (popup) mode — the `g_csrf_token` double-submit check from Google's docs applies ONLY to the form-POST (`login_uri`) mode; copying it here would 400 every request. JSON content type + strict CORS cover the CSRF surface instead.
 
 ## Must not
 

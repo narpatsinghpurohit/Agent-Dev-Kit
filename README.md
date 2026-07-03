@@ -25,11 +25,11 @@ Prereqs: Node ≥ 22.12, [pnpm](https://pnpm.io) 11 (`corepack enable` is enough
 pnpm install
 cp apps/api/.env.example apps/api/.env   # dev defaults work as-is
 pnpm db:up        # MongoDB as a single-node replica set (transactions work)
-pnpm db:seed      # demo user + example tasks
+pnpm db:seed      # example tasks for the admin account
 pnpm dev          # api on :3000, web on :5173
 ```
 
-Open <http://localhost:5173> and sign in as `demo@example.com` / `demo-password-123`.
+Open <http://localhost:5173> and sign in as `admin@example.com` / `admin-password-123` — the platform admin, bootstrapped on boot from `ADMIN_EMAIL`/`ADMIN_PASSWORD` in `apps/api/.env` (there is no demo user). Admins get the **Settings** screen; everyone who signs up — with a password or with Google — is a `member` with app access only.
 
 Then open the **✦ Copilot** panel and try: _“Create a task called Ship it”_ — you'll be asked to approve the tool call, and the task appears in your list. That whole loop runs on the keyless mock model.
 
@@ -44,6 +44,10 @@ AWS_BEARER_TOKEN_BEDROCK=...       # Claude on Bedrock for the copilot
 ```
 
 Which model serves which feature — and every sampling param — lives in one place: [`apps/api/src/ai/feature-models.ts`](apps/api/src/ai/feature-models.ts). Override per environment with `AI_MODEL_COPILOT_CHAT=google:gemini-3.1-pro-preview` etc. Feature code never names a model (lint-enforced).
+
+### Sign in with Google (optional)
+
+Create an OAuth **web** client in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (APIs & Services → Credentials), add your origins — `http://localhost:5173` for dev — under _Authorized JavaScript origins_, then paste the client ID into **Settings → General** in the running app (or seed it via `GOOGLE_OAUTH_CLIENT_ID` in `apps/api/.env`). The button appears on login/signup only when a client ID is configured; the client ID is public by design. Google users are keyed on Google's stable `sub`, auto-linked to a password account only after that account verified its email through our own flow — see [security.md](docs/guidelines/security.md).
 
 ## Monorepo map
 
@@ -76,7 +80,7 @@ docs/guidelines/  the coding standards both agents and humans follow
 | `pnpm lint` / `check-types` / `test` | the quality gates (also run per-file on commit via lefthook)                        |
 | `pnpm test:e2e`                      | api e2e (supertest + in-memory Mongo) and web e2e (Playwright, full stack, keyless) |
 | `pnpm gen:client`                    | API → openapi.json → regenerate `@repo/api-client`                                  |
-| `pnpm db:up` / `db:seed`             | local Mongo replica set / demo data                                                 |
+| `pnpm db:up` / `db:seed`             | local Mongo replica set / example tasks for the bootstrap admin                     |
 
 ## Production notes
 

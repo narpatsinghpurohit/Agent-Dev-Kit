@@ -14,14 +14,17 @@ import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { ZodResponse } from 'nestjs-zod';
-import type { AuthResponse } from '@repo/schemas';
+import type { AuthConfig, AuthResponse } from '@repo/schemas';
 import { CurrentUser, type AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import type { Env } from '../config/env.schema';
+import { SettingsService } from '../settings/settings.service';
 import { AuthService, type IssuedTokens } from './auth.service';
 import {
+  AuthConfigDto,
   AuthResponseDto,
   ForgotPasswordDto,
+  GoogleLoginDto,
   LoginDto,
   RefreshRequestDto,
   ResendVerificationDto,
@@ -44,7 +47,16 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService<Env, true>,
+    private readonly settingsService: SettingsService,
   ) {}
+
+  /** What the login screen may offer — safe to expose unauthenticated. */
+  @Public()
+  @Get('config')
+  @ZodResponse({ status: 200, type: AuthConfigDto })
+  authConfig(): AuthConfig {
+    return { googleClientId: this.settingsService.getGeneral().googleClientId };
+  }
 
   @Public()
   @Throttle(AUTH_THROTTLE)
@@ -72,6 +84,21 @@ export class AuthController {
     @Headers('user-agent') userAgent?: string,
   ): Promise<AuthResponse> {
     const tokens = await this.authService.login(body, userAgent);
+    return this.deliverTokens(tokens, request, response);
+  }
+
+  @Public()
+  @Throttle(AUTH_THROTTLE)
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ZodResponse({ status: 200, type: AuthResponseDto })
+  async googleLogin(
+    @Body() body: GoogleLoginDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<AuthResponse> {
+    const tokens = await this.authService.googleLogin(body, userAgent);
     return this.deliverTokens(tokens, request, response);
   }
 

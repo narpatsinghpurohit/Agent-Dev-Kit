@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { inputClass, primaryButtonClass } from '../../../components/form-styles';
 import { AuthCard, FieldErrors } from '../components/auth-card';
+import { GoogleSigninSection } from '../components/google-signin-section';
 import type { SignupViewModel } from './signup.hook';
 
-export function SignupView({ form, serverError }: SignupViewModel) {
+export function SignupView({ form, serverError, google }: SignupViewModel) {
   return (
     <AuthCard title="Create your account" subtitle="Production-grade from the first commit">
       <form
@@ -77,6 +78,7 @@ export function SignupView({ form, serverError }: SignupViewModel) {
           )}
         </form.Subscribe>
       </form>
+      <GoogleSigninSection {...google} />
       <p className="mt-4 text-sm text-ink-dim">
         Already registered?{' '}
         <Link to="/login" className="text-accent-soft hover:underline">

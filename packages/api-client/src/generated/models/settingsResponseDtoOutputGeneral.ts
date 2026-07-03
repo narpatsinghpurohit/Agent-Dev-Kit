@@ -14,4 +14,10 @@ export type SettingsResponseDtoOutputGeneral = {
      */
   corsOrigins: string[];
   requireEmailVerification: boolean;
+  /**
+     * @minLength 10
+     * @maxLength 200
+     * @nullable
+     */
+  googleClientId: string | null;
 };

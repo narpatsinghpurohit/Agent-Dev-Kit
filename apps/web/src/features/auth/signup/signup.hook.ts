@@ -3,10 +3,12 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { SignupSchema } from '@repo/schemas';
 import { signup } from '../../../lib/auth';
+import { useGoogleSignin } from '../google-signin/google-signin.hook';
 
 export function useSignup() {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
+  const google = useGoogleSignin();
 
   const form = useForm({
     defaultValues: { name: '', email: '', password: '' },
@@ -22,7 +24,7 @@ export function useSignup() {
     },
   });
 
-  return { form, serverError };
+  return { form, serverError, google };
 }
 
 export type SignupViewModel = ReturnType<typeof useSignup>;

@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
+import { getAuthConfigQueryOptions } from '@repo/api-client';
 import { LoginPage } from '../features/auth';
 
 export const Route = createFileRoute('/login')({
@@ -11,6 +12,11 @@ export const Route = createFileRoute('/login')({
       throw redirect({ to: '/tasks' });
     }
   },
+  // Same queryOptions the google-signin hook uses — no button pop-in.
+  // Swallow failures: the password form must never be blocked by the
+  // optional Google button's config fetch.
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(getAuthConfigQueryOptions()).catch(() => undefined),
   component: LoginRoute,
 });
 

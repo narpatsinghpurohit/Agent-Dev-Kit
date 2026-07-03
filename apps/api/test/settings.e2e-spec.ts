@@ -29,7 +29,7 @@ describe('settings (e2e)', () => {
     expect(admin.user.role).toBe('member'); // signups are members by default
     memberToken = (await signup('member@example.com')).accessToken;
 
-    // Promote directly in the database (what the seed script does for demo).
+    // Promote directly in the database (the env bootstrap has its own suites).
     const { getModelToken } = await import('@nestjs/mongoose');
     const userModel = app.get<{
       updateOne: (f: unknown, u: unknown) => { exec: () => Promise<unknown> };

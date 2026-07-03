@@ -182,6 +182,21 @@ export function SettingsPageView({
               </label>
             )}
           </form.Field>
+          <form.Field name="googleClientId">
+            {(field) => (
+              <Labeled
+                label="Google OAuth client ID"
+                hint="enables “Sign in with Google”; empty = disabled. Public by design."
+              >
+                <input
+                  className={inputClass}
+                  placeholder="1234567890-abc.apps.googleusercontent.com"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              </Labeled>
+            )}
+          </form.Field>
         </Section>
 
         {serverError ? (
