@@ -75,6 +75,7 @@ catalog:
 
   # --- codegen ---
   orval: ^8.19.0
+  '@faker-js/faker': ^10.5.0
 
   # --- testing ---
   vitest: ^4.1.9

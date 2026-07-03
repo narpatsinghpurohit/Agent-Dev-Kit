@@ -3,7 +3,7 @@
   "paths": {
     "/api/auth/signup": {
       "post": {
-        "operationId": "AuthController_signup",
+        "operationId": "authSignup",
         "parameters": [
           {
             "name": "user-agent",
@@ -43,7 +43,7 @@
     },
     "/api/auth/login": {
       "post": {
-        "operationId": "AuthController_login",
+        "operationId": "authLogin",
         "parameters": [
           {
             "name": "user-agent",
@@ -83,7 +83,7 @@
     },
     "/api/auth/refresh": {
       "post": {
-        "operationId": "AuthController_refresh",
+        "operationId": "authRefresh",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -114,7 +114,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "operationId": "AuthController_logout",
+        "operationId": "authLogout",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -138,7 +138,7 @@
     },
     "/api/auth/me": {
       "get": {
-        "operationId": "AuthController_me",
+        "operationId": "authMe",
         "parameters": [],
         "responses": {
           "200": {
@@ -159,7 +159,7 @@
     },
     "/api/auth/forgot-password": {
       "post": {
-        "operationId": "AuthController_forgotPassword",
+        "operationId": "authForgotPassword",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -183,7 +183,7 @@
     },
     "/api/auth/reset-password": {
       "post": {
-        "operationId": "AuthController_resetPassword",
+        "operationId": "authResetPassword",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -207,7 +207,7 @@
     },
     "/api/auth/verify-email": {
       "post": {
-        "operationId": "AuthController_verifyEmail",
+        "operationId": "authVerifyEmail",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -231,7 +231,7 @@
     },
     "/api/auth/resend-verification": {
       "post": {
-        "operationId": "AuthController_resendVerification",
+        "operationId": "authResendVerification",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -255,7 +255,7 @@
     },
     "/api/tasks": {
       "get": {
-        "operationId": "TasksController_list",
+        "operationId": "tasksList",
         "parameters": [
           {
             "name": "cursor",
@@ -312,7 +312,7 @@
         ]
       },
       "post": {
-        "operationId": "TasksController_create",
+        "operationId": "tasksCreate",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -348,7 +348,7 @@
     },
     "/api/tasks/{id}": {
       "get": {
-        "operationId": "TasksController_get",
+        "operationId": "tasksGet",
         "parameters": [
           {
             "name": "id",
@@ -381,7 +381,7 @@
         ]
       },
       "patch": {
-        "operationId": "TasksController_update",
+        "operationId": "tasksUpdate",
         "parameters": [
           {
             "name": "id",
@@ -424,7 +424,7 @@
         ]
       },
       "delete": {
-        "operationId": "TasksController_remove",
+        "operationId": "tasksRemove",
         "parameters": [
           {
             "name": "id",
@@ -452,7 +452,7 @@
     },
     "/api/ai/chat": {
       "post": {
-        "operationId": "ChatController_chat",
+        "operationId": "chatStream",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -482,7 +482,7 @@
     },
     "/api/ai/conversations": {
       "get": {
-        "operationId": "ChatController_conversations",
+        "operationId": "chatConversations",
         "parameters": [],
         "responses": {
           "200": {
@@ -501,7 +501,7 @@
     },
     "/api/ai/conversations/{id}/messages": {
       "get": {
-        "operationId": "ChatController_messages",
+        "operationId": "chatMessages",
         "parameters": [
           {
             "name": "id",
@@ -530,7 +530,7 @@
     },
     "/api/ai/models": {
       "get": {
-        "operationId": "ChatController_models_",
+        "operationId": "chatModels",
         "parameters": [],
         "responses": {
           "200": {
@@ -550,7 +550,7 @@
     },
     "/api/ai/transcribe": {
       "post": {
-        "operationId": "SpeechController_transcribe",
+        "operationId": "speechTranscribe",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -595,7 +595,7 @@
     },
     "/api/ai/tts": {
       "post": {
-        "operationId": "SpeechController_tts",
+        "operationId": "speechTts",
         "parameters": [],
         "requestBody": {
           "required": true,

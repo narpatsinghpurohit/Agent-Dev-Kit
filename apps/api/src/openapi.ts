@@ -9,7 +9,16 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    // Clean operationIds → clean generated hook names (useTasksList, not
+    // useTasksControllerList).
+    operationIdFactory: (controllerKey, methodKey) => {
+      const prefix = controllerKey.replace(/Controller$/, '');
+      const camelPrefix = prefix.charAt(0).toLowerCase() + prefix.slice(1);
+      if (methodKey.toLowerCase().startsWith(camelPrefix.toLowerCase())) return methodKey;
+      return `${camelPrefix}${methodKey.charAt(0).toUpperCase()}${methodKey.slice(1)}`;
+    },
+  });
   // nestjs-zod: converts zod JSON schema output into clean OpenAPI 3.0 shapes
   // (orval consumes 3.0 best).
   return cleanupOpenApiDoc(document, { version: '3.0' });

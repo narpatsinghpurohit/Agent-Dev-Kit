@@ -23,7 +23,7 @@ const AI_THROTTLE = { default: { limit: 20, ttl: 60_000 } };
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
-    private readonly models: ModelRegistryService,
+    private readonly modelRegistry: ModelRegistryService,
   ) {}
 
   @Post('chat')
@@ -31,7 +31,7 @@ export class ChatController {
   @ApiOperation({
     summary: 'Copilot chat stream (AI SDK UI-message SSE protocol — not plain JSON)',
   })
-  async chat(
+  async chatStream(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: ChatRequestDto,
     @Req() request: Request,
@@ -53,7 +53,7 @@ export class ChatController {
 
   @Get('models')
   @ApiOperation({ summary: 'Which model serves each AI feature (public metadata)' })
-  models_(): { features: ReturnType<ModelRegistryService['info']> } {
-    return { features: this.models.info() };
+  models(): { features: ReturnType<ModelRegistryService['info']> } {
+    return { features: this.modelRegistry.info() };
   }
 }

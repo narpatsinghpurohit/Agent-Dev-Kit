@@ -1,0 +1,43 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "orval-generated TanStack Query hooks over the API's openapi.json, plus the auth-aware fetch runtime. src/generated is committed and drift-checked — never hand-edit it.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./mocks": "./src/mocks.ts"
+  },
+  "scripts": {
+    "generate": "orval --config ./orval.config.ts",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@faker-js/faker": "catalog:"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "msw": "^2.0.0",
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "msw": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "@types/react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "msw": "catalog:",
+    "orval": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -6,6 +6,7 @@
   "description": "Shared flat configs. The web config mechanically enforces the view/hook file standard.",
   "exports": {
     "./base": "./base.js",
+    "./browser": "./browser.js",
     "./node": "./node.js",
     "./react": "./react.js",
     "./nestjs": "./nestjs.js"
