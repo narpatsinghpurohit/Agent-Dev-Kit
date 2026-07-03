@@ -28,10 +28,15 @@ export const AuthResponseSchema = z.object({
 });
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
 
-/** Cookie clients send nothing; cookie-less clients send the body token. */
-export const RefreshRequestSchema = z.object({
-  refreshToken: z.string().min(1).optional(),
-});
+/**
+ * Cookie clients send nothing (Express 5 leaves the body undefined — the
+ * default makes that parse); cookie-less clients send the body token.
+ */
+export const RefreshRequestSchema = z
+  .object({
+    refreshToken: z.string().min(1).optional(),
+  })
+  .default({});
 export type RefreshRequest = z.infer<typeof RefreshRequestSchema>;
 
 export const ForgotPasswordSchema = z.object({ email: emailSchema });

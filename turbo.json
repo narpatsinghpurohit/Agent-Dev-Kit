@@ -22,7 +22,7 @@
       "dependsOn": ["^build"]
     },
     "emit-openapi": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "outputs": ["openapi.json"]
     },
     "generate": {
@@ -31,7 +31,7 @@
     },
     "seed": {
       "cache": false,
-      "dependsOn": ["^build"]
+      "dependsOn": ["build"]
     }
   },
   "remoteCache": {

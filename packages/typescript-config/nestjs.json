@@ -10,7 +10,6 @@
     "strictPropertyInitialization": false,
     "declaration": false,
     "sourceMap": true,
-    "noEmit": false,
-    "outDir": "./dist"
+    "noEmit": false
   }
 }

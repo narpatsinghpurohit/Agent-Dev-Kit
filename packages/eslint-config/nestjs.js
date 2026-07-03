@@ -48,6 +48,12 @@ export const nestjsConfig = tseslint.config(
   base,
   {
     languageOptions: { globals: { ...globals.node } },
+    rules: {
+      // Nest DI + ZodValidationPipe read classes from emitDecoratorMetadata:
+      // constructor/param "type-only" imports are runtime-load-bearing, and
+      // auto-fixing them to `import type` silently breaks injection.
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
   },
   {
     // Feature code: no direct provider access, no ai/test.
@@ -80,7 +86,7 @@ export const nestjsConfig = tseslint.config(
   {
     // Scripts (seed, emit-openapi) are operational CLIs — console is their UI.
     name: 'repo/api-arch/scripts',
-    files: ['scripts/**/*.ts'],
+    files: ['src/scripts/**/*.ts', 'scripts/**/*.ts'],
     rules: {
       'no-console': 'off',
     },
