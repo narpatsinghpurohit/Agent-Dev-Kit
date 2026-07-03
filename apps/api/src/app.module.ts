@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { AiModule } from './ai/ai.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -49,6 +50,7 @@ import { UsersModule } from './users/users.module';
     MailerModule,
     AuthModule,
     TasksModule,
+    AiModule,
   ],
   providers: [
     // Order matters: throttling runs before auth so brute-force hits are

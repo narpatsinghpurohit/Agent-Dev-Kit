@@ -65,6 +65,7 @@ catalog:
 
   # --- AI (matched major set: ai@7 <-> @ai-sdk/react@4; do not mix majors) ---
   ai: ^7.0.14
+  '@ai-sdk/provider': ^4.0.2
   '@ai-sdk/google': ^4.0.8
   '@ai-sdk/amazon-bedrock': ^5.0.10
   '@ai-sdk/react': ^4.0.15

@@ -12,6 +12,9 @@ catalogs:
     '@ai-sdk/google':
       specifier: ^4.0.8
       version: 4.0.8
+    '@ai-sdk/provider':
+      specifier: ^4.0.2
+      version: 4.0.2
     '@commitlint/cli':
       specifier: ^21.2.0
       version: 21.2.0
@@ -203,6 +206,9 @@ importers:
       '@ai-sdk/google':
         specifier: 'catalog:'
         version: 4.0.8(zod@4.4.3)
+      '@ai-sdk/provider':
+        specifier: 'catalog:'
+        version: 4.0.2
       '@nestjs/common':
         specifier: 'catalog:'
         version: 11.1.27(reflect-metadata@0.2.2)(rxjs@7.8.2)
