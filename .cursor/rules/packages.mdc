@@ -1,0 +1,10 @@
+---
+description: Shared package rules — schemas contract, generated api-client, eslint-config lint wall
+globs: packages/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+- @repo/schemas is zod-only and platform-neutral (no Nest/React/Mongoose imports) and COMPILED — run `pnpm --filter @repo/schemas build` after edits (turbo handles this via ^build); `ownerId` never appears in wire schemas. detail: docs/guidelines/architecture.md
+- @repo/api-client: `src/generated/**` is COMMITTED and drift-checked — never hand-edit; regenerate with `pnpm gen:client` (api build → emit-openapi → orval).
+- @repo/eslint-config: fixture tests guard the lint wall — run `pnpm --filter @repo/eslint-config test` after any config change.
+- Dependency versions come only from the catalog in pnpm-workspace.yaml (`catalog:`), enforced by `pnpm syncpack:lint`.

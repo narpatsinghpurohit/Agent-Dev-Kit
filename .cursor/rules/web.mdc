@@ -1,0 +1,15 @@
+---
+description: Web app (apps/web) rules — view/hook triple, TanStack Router, generated route tree, forms
+globs: apps/web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+- Stateful screens are a triple: `<name>.hook.ts` (ViewModel — ALL data/query/form/navigation, returns one typed object) + `<name>.view.tsx` (pure props → JSX) + `<name>.tsx` (~5-line container). Presentational leaves stay single-file. detail: docs/guidelines/component-structure.md
+- Hook files are `.ts`, never `.tsx` — JSX in a ViewModel is a lint error and a parse error.
+- `@tanstack/react-query` and `@repo/api-client` are importable ONLY in `src/**/*.hook.ts`, `src/routes/**`, `src/main.tsx`, `src/lib/**`, `src/shared/testing/**`, and `*.test` files (lint-enforced by @repo/eslint-config react.js).
+- NEVER import `react-router-dom` — this repo is TanStack Router only (lint-banned).
+- NEVER hand-edit `src/routeTree.gen.ts`; regenerate with `pnpm --filter @repo/web routes:generate` (also regenerates during `vite dev`).
+- Routes are pure config: `validateSearch` + loader `ensureQueryData` with the SAME generated queryOptions the hook uses. detail: docs/guidelines/data-and-state.md
+- Forms (TanStack Form) validate with schemas from `@repo/schemas` — never redefine domain validation locally.
+- Feature barrels (`index.ts`) export pages only.
+- Error UI consumes the shared error envelope. detail: docs/guidelines/error-handling.md

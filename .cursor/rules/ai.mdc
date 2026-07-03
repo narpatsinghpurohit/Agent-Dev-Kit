@@ -1,0 +1,13 @@
+---
+description: AI feature rules — model registry only, AI SDK v7 idioms, keyless mock provider, budget accounting
+globs: {apps/api/src/ai/**/*.ts,apps/web/src/features/copilot/**/*.{ts,tsx}}
+alwaysApply: false
+---
+
+- Feature code gets models ONLY via the registry: `models.languageModel('<feature>')` (apps/api/src/ai/model-registry.service.ts + feature-models.ts); `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` imports are lint-banned outside src/ai/. detail: docs/guidelines/ai.md
+- AI SDK v7 idioms: `instructions` not `system`; `isStepCount` not `stepCountIs`; `onEnd` not `onFinish` (stream option); bill with `totalUsage` not `usage`.
+- Chat streams UI messages via standalone `pipeUIMessageStreamToResponse` on a raw `@Res()` — never Nest `@Sse()`.
+- NEVER import `'ai/test'` at runtime — the keyless path is the mock provider in apps/api/src/ai/providers/mock (lint-banned outside tests).
+- Mutating task tools require `toolApproval` ('user-approval'); tools call TasksService with the userId from the JWT, never from model input. detail: docs/guidelines/security.md
+- Wrap every model call in AiUsageService two-phase budget reserve/settle.
+- UIMessages persist verbatim to ai_conversations/ai_messages — do not reshape them.

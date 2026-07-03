@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # Optional Vercel remote cache — set the secret/variable to enable.
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+jobs:
+  verify:
+    name: lint · types · tests · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Shallow clones silently break turbo --affected.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4 # version comes from packageManager
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm syncpack:lint
+      - name: turbo verify (affected on PRs)
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
+        run: >
+          pnpm turbo run lint check-types test build
+          ${{ github.event_name == 'pull_request' && '--affected' || '' }}
+      - name: generated client drift gate
+        run: |
+          pnpm gen:client
+          git diff --exit-code apps/api/openapi.json packages/api-client/src/generated
+
+  api-e2e:
+    name: api e2e (memory replica set)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run test:e2e --filter=@repo/api
+
+  web-e2e:
+    name: web e2e (playwright, full stack, keyless)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/web
+      - name: build the api the e2e server boots
+        run: pnpm turbo run build --filter=@repo/api
+      - run: pnpm test:e2e
+        working-directory: apps/web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results/
+          retention-days: 7
+
+  commitlint:
+    name: conventional commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v6

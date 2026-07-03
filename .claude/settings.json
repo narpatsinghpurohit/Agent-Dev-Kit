@@ -1,0 +1,59 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm turbo *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm --filter *)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm gen:client)",
+      "Bash(pnpm db:up)",
+      "Bash(pnpm db:seed)",
+      "Bash(pnpm check-types)",
+      "Bash(pnpm build)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Read(./docs/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Bash(git push*)",
+      "Edit(./apps/web/src/routeTree.gen.ts)",
+      "Edit(./packages/api-client/src/generated/**)",
+      "Edit(./apps/api/openapi.json)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint-changed.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify-done.sh",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}

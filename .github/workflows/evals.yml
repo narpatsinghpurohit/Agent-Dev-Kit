@@ -1,0 +1,23 @@
+name: AI evals (opt-in)
+
+# Deliberately NOT part of PR CI: evals call real models (cost money, need
+# keys). Run manually, or wire a schedule once you have provider keys set as
+# repository secrets.
+on:
+  workflow_dispatch:
+
+jobs:
+  promptfoo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: run promptfoo evals
+        env:
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+        run: pnpm dlx promptfoo@latest eval -c evals/promptfoo.yaml

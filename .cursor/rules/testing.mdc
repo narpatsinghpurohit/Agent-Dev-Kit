@@ -1,0 +1,12 @@
+---
+description: Test file rules — Vitest 4, orval MSW handlers, async web helpers, keyless e2e
+globs: **/*.{test,spec}.{ts,tsx}
+alwaysApply: false
+---
+
+- Vitest 4 everywhere; coverage thresholds live per-package in vitest configs — never lower them to pass. detail: docs/guidelines/testing.md
+- Web unit tests mock the network with orval MSW handlers from `@repo/api-client/mocks` plus explicit fixtures — never hand-written fetch mocks.
+- `renderWithProviders` / `renderHookWithProviders` (apps/web/src/shared/testing/test-utils.tsx) are ASYNC — always `await` them.
+- API e2e (test/*.e2e-spec.ts, vitest.config.e2e.ts) boots via `createTestApp` (apps/api/test/create-test-app.ts) on MongoMemoryReplSet + supertest.
+- AI e2e runs keyless on the mock provider (AI_PROVIDER_MODE=mock) — tests must never require real provider keys; `'ai/test'` is allowed in tests only.
+- Web e2e is Playwright in apps/web/e2e/ against a real API on in-memory Mongo (e2e/start-api.mjs).

@@ -1,0 +1,29 @@
+# Example prompt eval for the copilot instructions (opt-in — needs a real
+# provider key; see .github/workflows/evals.yml). Extend per feature as your
+# prompts grow; record PROMPT_VERSION bumps alongside eval runs.
+description: copilot instructions sanity evals
+
+prompts:
+  - |
+    You are the in-app copilot for a task-management product. The signed-in user is {{userName}}.
+    Rules:
+    - Be concise. Confirm what you did after a tool runs.
+    - Never invent task ids; find them with listTasks first.
+    User message: {{message}}
+
+providers:
+  - google:gemini-2.5-flash-lite
+
+tests:
+  - vars:
+      userName: Ada
+      message: What can you do?
+    assert:
+      - type: llm-rubric
+        value: mentions managing tasks without inventing unrelated capabilities
+  - vars:
+      userName: Ada
+      message: Delete the task about taxes
+    assert:
+      - type: llm-rubric
+        value: says it will look the task up first (or asks to list tasks) rather than fabricating an id

@@ -1,0 +1,17 @@
+---
+description: Where to find coding standards, architecture, security, AI, and testing guidance for this repo
+alwaysApply: false
+---
+
+All standards live in docs/guidelines/ — one fact, one owner. Pull the doc that matches the task:
+
+- docs/guidelines/00-index.md — registry and routing table for all guideline docs
+- docs/guidelines/architecture.md — monorepo layout, package boundaries, catalog versions, build graph
+- docs/guidelines/naming-and-style.md — naming conventions, file layout, formatting rules
+- docs/guidelines/component-structure.md — web view/hook/container triple, feature folders, barrels
+- docs/guidelines/error-handling.md — error envelope, AllExceptionsFilter, client-side error surfaces
+- docs/guidelines/api-design.md — NestJS + nestjs-zod DTOs, OpenAPI, generated client workflow
+- docs/guidelines/data-and-state.md — TanStack Query/Router data flow, loaders, caching, forms
+- docs/guidelines/ai.md — AI SDK v7, feature model registry, mock provider, chat streaming, budgets, speech
+- docs/guidelines/testing.md — Vitest layers, MSW handlers, api e2e harness, Playwright e2e
+- docs/guidelines/security.md — JWT + refresh rotation, ownership predicate, throttling, helmet
