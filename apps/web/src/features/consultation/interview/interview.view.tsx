@@ -134,7 +134,7 @@ export function InterviewView({
                   className={`rounded-full px-4 py-2 text-sm font-medium ${
                     isRecording
                       ? 'animate-pulse bg-danger text-white'
-                      : 'bg-accent text-white hover:bg-accent-soft'
+                      : 'bg-accent text-white hover:bg-accent-hover'
                   }`}
                 >
                   {isRecording ? '■ Stop & translate' : '🎤 Hold the phone to the patient'}

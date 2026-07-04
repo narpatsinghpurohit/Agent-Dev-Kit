@@ -1,3 +1,7 @@
+import { Mic, Volume2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Textarea } from '../../components/ui/textarea';
+import { cn } from '../../lib/utils';
 import { ToolPartCard } from './components/tool-part-card';
 import type { CopilotPanelViewModel } from './copilot-panel.hook';
 
@@ -22,9 +26,9 @@ export function CopilotPanelView({
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="copilot-panel">
       <div className="border-b border-edge px-4 py-3">
-        <h2 className="text-sm font-semibold">Copilot</h2>
+        <h2 className="text-sm font-semibold">Vedita</h2>
         <p className="text-xs text-ink-dim">
-          Ask it to register patients or look up their history.
+          Ask Vedita to register patients or look up their history.
         </p>
       </div>
 
@@ -38,7 +42,7 @@ export function CopilotPanelView({
         {messages.map((message) => (
           <div key={message.id} data-role={message.role}>
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-dim">
-              {message.role === 'user' ? 'You' : 'Copilot'}
+              {message.role === 'user' ? 'You' : 'Vedita'}
             </p>
             <div className="space-y-2">
               {message.parts.map((part, index) => {
@@ -53,9 +57,9 @@ export function CopilotPanelView({
                           title="Read aloud"
                           aria-label="Read aloud"
                           onClick={() => onSpeak(part.text)}
-                          className="invisible text-xs group-hover:visible"
+                          className="invisible text-ink-dim hover:text-ink group-hover:visible"
                         >
-                          🔊
+                          <Volume2 className="size-4" aria-hidden />
                         </button>
                       ) : null}
                     </div>
@@ -93,20 +97,26 @@ export function CopilotPanelView({
         }}
       >
         {micAvailable ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => void onToggleRecording()}
             title={isRecording ? 'Stop recording' : 'Dictate'}
             aria-pressed={isRecording}
-            className={`rounded-md px-2 py-2 text-lg ${isRecording ? 'animate-pulse bg-danger/20' : 'hover:bg-edge'}`}
+            className={cn(
+              'text-ink-dim',
+              isRecording &&
+                'animate-pulse bg-danger-soft text-danger hover:bg-danger-soft hover:text-danger',
+            )}
           >
-            🎙️
-          </button>
+            <Mic aria-hidden />
+          </Button>
         ) : null}
-        <textarea
+        <Textarea
           rows={1}
           value={input}
-          placeholder={isTranscribing ? 'Transcribing…' : 'Message the copilot'}
+          placeholder={isTranscribing ? 'Transcribing…' : 'Message Vedita'}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -114,24 +124,16 @@ export function CopilotPanelView({
               onSubmit();
             }
           }}
-          className="max-h-32 flex-1 resize-none rounded-md border border-edge bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          className="max-h-32 min-h-9 flex-1 resize-none"
         />
         {busy ? (
-          <button
-            type="button"
-            onClick={() => void onStop()}
-            className="rounded-md border border-edge px-3 py-2 text-sm text-ink-dim hover:text-ink"
-          >
+          <Button type="button" variant="outline" onClick={() => void onStop()}>
             Stop
-          </button>
+          </Button>
         ) : (
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-soft disabled:opacity-50"
-          >
+          <Button type="submit" disabled={!input.trim()}>
             Send
-          </button>
+          </Button>
         )}
       </form>
     </div>

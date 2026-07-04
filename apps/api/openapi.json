@@ -1973,8 +1973,21 @@
                   "type": "string",
                   "enum": [
                     "doctor",
-                    "patient"
+                    "patient",
+                    "vedita"
                   ]
+                },
+                "kind": {
+                  "default": "utterance",
+                  "type": "string",
+                  "enum": [
+                    "utterance",
+                    "insight"
+                  ]
+                },
+                "isPrivate": {
+                  "default": false,
+                  "type": "boolean"
                 },
                 "sourceLanguage": {
                   "type": "string",
@@ -2017,6 +2030,15 @@
                   "type": "string",
                   "maxLength": 4000
                 },
+                "capturedFields": {
+                  "default": [],
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 60
+                  }
+                },
                 "at": {
                   "type": "string",
                   "format": "date-time",
@@ -2026,10 +2048,13 @@
               "required": [
                 "id",
                 "speaker",
+                "kind",
+                "isPrivate",
                 "sourceLanguage",
                 "targetLanguage",
                 "sourceText",
                 "translatedText",
+                "capturedFields",
                 "at"
               ],
               "additionalProperties": false
@@ -2107,6 +2132,47 @@
               "additionalNotes": {
                 "type": "string",
                 "maxLength": 2000
+              },
+              "provenance": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "sourceTurnId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "sourceAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                      "nullable": true
+                    },
+                    "isNew": {
+                      "type": "boolean"
+                    },
+                    "origin": {
+                      "type": "string",
+                      "enum": [
+                        "ai",
+                        "manual"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "confidence",
+                    "sourceTurnId",
+                    "sourceAt",
+                    "isNew",
+                    "origin"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [
@@ -2119,6 +2185,111 @@
               "additionalNotes"
             ],
             "additionalProperties": false,
+            "nullable": true
+          },
+          "ahmisStatus": {
+            "type": "string",
+            "default": "not_synced",
+            "enum": [
+              "not_synced",
+              "synced"
+            ]
+          },
+          "ahmisSyncedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "default": null,
+            "nullable": true
+          },
+          "treatmentPlan": {
+            "type": "object",
+            "properties": {
+              "rationale": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "items": {
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "category": {
+                      "type": "string",
+                      "enum": [
+                        "herbal",
+                        "ahara",
+                        "vihara"
+                      ]
+                    },
+                    "body": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    "evidence": {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "state": {
+                      "default": "suggested",
+                      "type": "string",
+                      "enum": [
+                        "suggested",
+                        "accepted",
+                        "modified",
+                        "rejected"
+                      ]
+                    },
+                    "editedBody": {
+                      "type": "string",
+                      "maxLength": 1000,
+                      "default": null,
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "category",
+                    "body",
+                    "evidence",
+                    "confidence",
+                    "state",
+                    "editedBody"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "cohortSize": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991,
+                "nullable": true
+              },
+              "generatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            },
+            "required": [
+              "rationale",
+              "items",
+              "cohortSize",
+              "generatedAt"
+            ],
+            "additionalProperties": false,
+            "default": null,
             "nullable": true
           },
           "createdAt": {
@@ -2146,6 +2317,9 @@
           "patientLanguage",
           "turns",
           "summary",
+          "ahmisStatus",
+          "ahmisSyncedAt",
+          "treatmentPlan",
           "createdAt",
           "updatedAt",
           "completedAt"
@@ -2221,8 +2395,21 @@
                         "type": "string",
                         "enum": [
                           "doctor",
-                          "patient"
+                          "patient",
+                          "vedita"
                         ]
+                      },
+                      "kind": {
+                        "default": "utterance",
+                        "type": "string",
+                        "enum": [
+                          "utterance",
+                          "insight"
+                        ]
+                      },
+                      "isPrivate": {
+                        "default": false,
+                        "type": "boolean"
                       },
                       "sourceLanguage": {
                         "type": "string",
@@ -2265,6 +2452,15 @@
                         "type": "string",
                         "maxLength": 4000
                       },
+                      "capturedFields": {
+                        "default": [],
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 60
+                        }
+                      },
                       "at": {
                         "type": "string",
                         "format": "date-time",
@@ -2274,10 +2470,13 @@
                     "required": [
                       "id",
                       "speaker",
+                      "kind",
+                      "isPrivate",
                       "sourceLanguage",
                       "targetLanguage",
                       "sourceText",
                       "translatedText",
+                      "capturedFields",
                       "at"
                     ],
                     "additionalProperties": false
@@ -2355,6 +2554,47 @@
                     "additionalNotes": {
                       "type": "string",
                       "maxLength": 2000
+                    },
+                    "provenance": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "sourceTurnId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "sourceAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                            "nullable": true
+                          },
+                          "isNew": {
+                            "type": "boolean"
+                          },
+                          "origin": {
+                            "type": "string",
+                            "enum": [
+                              "ai",
+                              "manual"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "confidence",
+                          "sourceTurnId",
+                          "sourceAt",
+                          "isNew",
+                          "origin"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -2367,6 +2607,111 @@
                     "additionalNotes"
                   ],
                   "additionalProperties": false,
+                  "nullable": true
+                },
+                "ahmisStatus": {
+                  "default": "not_synced",
+                  "type": "string",
+                  "enum": [
+                    "not_synced",
+                    "synced"
+                  ]
+                },
+                "ahmisSyncedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                  "default": null,
+                  "nullable": true
+                },
+                "treatmentPlan": {
+                  "type": "object",
+                  "properties": {
+                    "rationale": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "items": {
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "category": {
+                            "type": "string",
+                            "enum": [
+                              "herbal",
+                              "ahara",
+                              "vihara"
+                            ]
+                          },
+                          "body": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1000
+                          },
+                          "evidence": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "state": {
+                            "default": "suggested",
+                            "type": "string",
+                            "enum": [
+                              "suggested",
+                              "accepted",
+                              "modified",
+                              "rejected"
+                            ]
+                          },
+                          "editedBody": {
+                            "type": "string",
+                            "maxLength": 1000,
+                            "default": null,
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "category",
+                          "body",
+                          "evidence",
+                          "confidence",
+                          "state",
+                          "editedBody"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "cohortSize": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "nullable": true
+                    },
+                    "generatedAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    }
+                  },
+                  "required": [
+                    "rationale",
+                    "items",
+                    "cohortSize",
+                    "generatedAt"
+                  ],
+                  "additionalProperties": false,
+                  "default": null,
                   "nullable": true
                 },
                 "createdAt": {
@@ -2394,6 +2739,9 @@
                 "patientLanguage",
                 "turns",
                 "summary",
+                "ahmisStatus",
+                "ahmisSyncedAt",
+                "treatmentPlan",
                 "createdAt",
                 "updatedAt",
                 "completedAt"
@@ -2439,8 +2787,21 @@
                 "type": "string",
                 "enum": [
                   "doctor",
-                  "patient"
+                  "patient",
+                  "vedita"
                 ]
+              },
+              "kind": {
+                "default": "utterance",
+                "type": "string",
+                "enum": [
+                  "utterance",
+                  "insight"
+                ]
+              },
+              "isPrivate": {
+                "default": false,
+                "type": "boolean"
               },
               "sourceLanguage": {
                 "type": "string",
@@ -2483,6 +2844,15 @@
                 "type": "string",
                 "maxLength": 4000
               },
+              "capturedFields": {
+                "default": [],
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                }
+              },
               "at": {
                 "type": "string",
                 "format": "date-time",
@@ -2492,10 +2862,13 @@
             "required": [
               "id",
               "speaker",
+              "kind",
+              "isPrivate",
               "sourceLanguage",
               "targetLanguage",
               "sourceText",
               "translatedText",
+              "capturedFields",
               "at"
             ],
             "additionalProperties": false
@@ -2525,8 +2898,21 @@
                 "type": "string",
                 "enum": [
                   "doctor",
-                  "patient"
+                  "patient",
+                  "vedita"
                 ]
+              },
+              "kind": {
+                "default": "utterance",
+                "type": "string",
+                "enum": [
+                  "utterance",
+                  "insight"
+                ]
+              },
+              "isPrivate": {
+                "default": false,
+                "type": "boolean"
               },
               "sourceLanguage": {
                 "type": "string",
@@ -2569,6 +2955,15 @@
                 "type": "string",
                 "maxLength": 4000
               },
+              "capturedFields": {
+                "default": [],
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                }
+              },
               "at": {
                 "type": "string",
                 "format": "date-time",
@@ -2578,10 +2973,13 @@
             "required": [
               "id",
               "speaker",
+              "kind",
+              "isPrivate",
               "sourceLanguage",
               "targetLanguage",
               "sourceText",
               "translatedText",
+              "capturedFields",
               "at"
             ],
             "additionalProperties": false
@@ -2676,6 +3074,46 @@
           "additionalNotes": {
             "type": "string",
             "maxLength": 2000
+          },
+          "provenance": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "sourceTurnId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "sourceAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                  "nullable": true
+                },
+                "isNew": {
+                  "type": "boolean"
+                },
+                "origin": {
+                  "type": "string",
+                  "enum": [
+                    "ai",
+                    "manual"
+                  ]
+                }
+              },
+              "required": [
+                "confidence",
+                "sourceTurnId",
+                "sourceAt",
+                "isNew",
+                "origin"
+              ]
+            }
           }
         },
         "required": [

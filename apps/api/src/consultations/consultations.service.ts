@@ -216,7 +216,15 @@ export class ConsultationsService {
       if (current) throw new BadRequestException('This consultation is already completed');
       throw new NotFoundException('Consultation not found');
     }
-    return { ...turn, at: turn.at.toISOString() };
+    // kind/isPrivate/capturedFields live only on the wire until the turn
+    // subdoc gains them (consultations extension) — surface their defaults.
+    return {
+      ...turn,
+      kind: 'utterance',
+      isPrivate: false,
+      capturedFields: [],
+      at: turn.at.toISOString(),
+    };
   }
 
   private async requireInProgress(ownerId: string, id: string): Promise<LeanConsultation> {
@@ -335,6 +343,11 @@ function toDto(consultation: LeanConsultation): ConsultationDto {
     turns: consultation.turns.map((turn) => ({
       id: turn.id,
       speaker: turn.speaker,
+      // Wire defaults until the turn subdoc gains these fields
+      // (consultations extension).
+      kind: 'utterance' as const,
+      isPrivate: false,
+      capturedFields: [],
       sourceLanguage: turn.sourceLanguage,
       targetLanguage: turn.targetLanguage,
       sourceText: turn.sourceText,
@@ -342,6 +355,9 @@ function toDto(consultation: LeanConsultation): ConsultationDto {
       at: turn.at.toISOString(),
     })),
     summary: consultation.summary ?? null,
+    ahmisStatus: 'not_synced' as const,
+    ahmisSyncedAt: null,
+    treatmentPlan: null,
     createdAt: consultation.createdAt.toISOString(),
     updatedAt: consultation.updatedAt.toISOString(),
     completedAt: consultation.completedAt?.toISOString() ?? null,

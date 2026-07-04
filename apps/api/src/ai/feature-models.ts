@@ -69,6 +69,27 @@ const DEFAULT_FEATURE_MODELS: Record<AiFeatureName, FeatureModelConfig> = {
     maxOutputTokens: 2048,
     capabilities: ['chat'],
   },
+  // Drafts the AYUSH treatment plan from the summary + cohort stats.
+  'treatment-plan': {
+    model: 'google:gemini-2.5-flash-lite',
+    temperature: 0.4,
+    maxOutputTokens: 2048,
+    capabilities: ['chat'],
+  },
+  // Private mid-consultation observations for the doctor (vedita turns).
+  'clinical-insight': {
+    model: 'google:gemini-2.5-flash-lite',
+    temperature: 0.5,
+    maxOutputTokens: 512,
+    capabilities: ['chat'],
+  },
+  // Suggests short follow-up questions in the doctor's language.
+  'quick-asks': {
+    model: 'google:gemini-2.5-flash-lite',
+    temperature: 0.6,
+    maxOutputTokens: 384,
+    capabilities: ['chat'],
+  },
 };
 
 /** Single source for the copilot's tunable defaults (settings seeds reuse it). */
@@ -88,6 +109,9 @@ const ENV_OVERRIDE_KEYS: Record<AiFeatureName, keyof Env> = {
   'voice-tts': 'AI_MODEL_VOICE_TTS',
   'voice-translate': 'AI_MODEL_VOICE_TRANSLATE',
   'consultation-extract': 'AI_MODEL_CONSULTATION_EXTRACT',
+  'treatment-plan': 'AI_MODEL_TREATMENT_PLAN',
+  'clinical-insight': 'AI_MODEL_CLINICAL_INSIGHT',
+  'quick-asks': 'AI_MODEL_QUICK_ASKS',
 };
 
 export type ResolvedFeatureModels = Record<AiFeatureName, FeatureModelConfig>;

@@ -20,7 +20,7 @@ export function PatientListView({
         <h1 className="text-2xl font-semibold">Patients</h1>
         <Link
           to="/patients/new"
-          className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-soft"
+          className="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-white shadow-[0_3px_0_0_var(--color-accent-deep)] hover:bg-accent-hover active:translate-y-[3px] active:shadow-none"
         >
           New patient
         </Link>
@@ -51,7 +51,7 @@ export function PatientListView({
         {patients.map((patient) => (
           <li
             key={patient.id}
-            className="rounded-lg border border-edge bg-panel px-4 py-3 hover:border-accent-soft"
+            className="rounded-lg border border-edge bg-panel px-4 py-3 hover:border-accent/40"
           >
             <Link to="/patients/$patientId" params={{ patientId: patient.id }} className="block">
               <div className="flex items-center justify-between">

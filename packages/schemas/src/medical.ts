@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CursorQuerySchema, cursorPage, isoDateTime, objectIdString } from './common';
+import { TreatmentPlanSchema } from './treatment';
 
 /**
  * The medical-intake domain: patients and interview consultations.
@@ -99,19 +100,32 @@ export type PatientListResponse = z.infer<typeof PatientListResponseSchema>;
 export const ConsultationStatusSchema = z.enum(['in_progress', 'completed']);
 export type ConsultationStatus = z.infer<typeof ConsultationStatusSchema>;
 
-export const SpeakerSchema = z.enum(['doctor', 'patient']);
+/** `vedita` = the AI itself, speaking privately to the doctor (insight turns). */
+export const SpeakerSchema = z.enum(['doctor', 'patient', 'vedita']);
 export type Speaker = z.infer<typeof SpeakerSchema>;
 
-/** One utterance, kept in BOTH languages so either party can re-read it. */
+export const TurnKindSchema = z.enum(['utterance', 'insight']);
+export type TurnKind = z.infer<typeof TurnKindSchema>;
+
+/**
+ * One utterance, kept in BOTH languages so either party can re-read it.
+ * A Vedita insight turn: speaker `vedita`, kind `insight`, isPrivate true,
+ * source = target = doctor language, translatedText mirrors sourceText.
+ */
 export const ConsultationTurnSchema = z.object({
   id: z.string().min(1),
   speaker: SpeakerSchema,
+  kind: TurnKindSchema.default('utterance'),
+  /** Private turns are doctor-only (never spoken/shown to the patient). */
+  isPrivate: z.boolean().default(false),
   sourceLanguage: LanguageCodeSchema,
   targetLanguage: LanguageCodeSchema,
   /** What was said, in the speaker's language. */
   sourceText: z.string().min(1).max(2000),
   /** The same utterance rendered into the listener's language. */
   translatedText: z.string().max(4000),
+  /** Summary-field keys the extractor sourced from this turn (capture chips). */
+  capturedFields: z.array(z.string().max(60)).max(20).default([]),
   at: isoDateTime,
 });
 export type ConsultationTurn = z.infer<typeof ConsultationTurnSchema>;
@@ -124,6 +138,18 @@ export const SymptomSchema = z.object({
 });
 export type Symptom = z.infer<typeof SymptomSchema>;
 
+/** Where a summary field came from — drives the EHR pane's provenance UI. */
+export const FieldMetaSchema = z.object({
+  confidence: z.number().min(0).max(1),
+  /** The transcript turn that sourced the value — null for manual entries. */
+  sourceTurnId: z.string().nullable(),
+  sourceAt: isoDateTime.nullable(),
+  /** True when the field/entry was absent in the previous extraction. */
+  isNew: z.boolean(),
+  origin: z.enum(['ai', 'manual']),
+});
+export type FieldMeta = z.infer<typeof FieldMetaSchema>;
+
 /** The structured record the doctor walks away with. AI-drafted, doctor-edited. */
 export const ConsultationSummarySchema = z.object({
   chiefComplaint: z.string().max(500),
@@ -134,8 +160,18 @@ export const ConsultationSummarySchema = z.object({
   /** Anything that warrants urgent attention — surfaced prominently. */
   redFlags: z.array(z.string().max(300)).max(10),
   additionalNotes: z.string().max(2000),
+  /**
+   * Per-field provenance keyed by `chiefComplaint`, `history`,
+   * `additionalNotes`, `symptoms.<i>`, `medications.<i>`, `allergies.<i>`,
+   * `redFlags.<i>`, plus `vitals` (manual). Optional: pre-provenance docs.
+   */
+  provenance: z.record(z.string(), FieldMetaSchema).optional(),
 });
 export type ConsultationSummary = z.infer<typeof ConsultationSummarySchema>;
+
+/** AHMIS sync is a local status flip in this demo — never a real external call. */
+export const AhmisStatusSchema = z.enum(['not_synced', 'synced']);
+export type AhmisStatus = z.infer<typeof AhmisStatusSchema>;
 
 export const ConsultationSchema = z.object({
   id: objectIdString,
@@ -145,6 +181,9 @@ export const ConsultationSchema = z.object({
   patientLanguage: LanguageCodeSchema,
   turns: z.array(ConsultationTurnSchema).max(200),
   summary: ConsultationSummarySchema.nullable(),
+  ahmisStatus: AhmisStatusSchema.default('not_synced'),
+  ahmisSyncedAt: isoDateTime.nullable().default(null),
+  treatmentPlan: TreatmentPlanSchema.nullable().default(null),
   createdAt: isoDateTime,
   updatedAt: isoDateTime,
   completedAt: isoDateTime.nullable(),
@@ -192,3 +231,9 @@ export type AnswerResponse = z.infer<typeof AnswerResponseSchema>;
 
 export const SummaryUpdateSchema = ConsultationSummarySchema;
 export type SummaryUpdateInput = z.infer<typeof SummaryUpdateSchema>;
+
+/** AI-suggested follow-up questions in the doctor's language (never persisted). */
+export const QuickAsksResponseSchema = z.object({
+  questions: z.array(z.string().min(1).max(200)).min(1).max(4),
+});
+export type QuickAsksResponse = z.infer<typeof QuickAsksResponseSchema>;

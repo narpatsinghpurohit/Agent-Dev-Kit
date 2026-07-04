@@ -74,6 +74,9 @@ export const EnvSchema = z.object({
   AI_MODEL_VOICE_TTS: z.string().optional(),
   AI_MODEL_VOICE_TRANSLATE: z.string().optional(),
   AI_MODEL_CONSULTATION_EXTRACT: z.string().optional(),
+  AI_MODEL_TREATMENT_PLAN: z.string().optional(),
+  AI_MODEL_CLINICAL_INSIGHT: z.string().optional(),
+  AI_MODEL_QUICK_ASKS: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

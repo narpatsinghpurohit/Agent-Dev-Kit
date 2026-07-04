@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { Flag } from 'lucide-react';
 import { LANGUAGE_NAMES, LanguageCodeSchema, type LanguageCode } from '@repo/schemas';
 import { inputClass, primaryButtonClass } from '../../../components/form-styles';
 import type { PatientDetailViewModel } from './patient-detail.hook';
@@ -87,7 +88,7 @@ export function PatientDetailView({
               <Link
                 to="/consultations/$consultationId"
                 params={{ consultationId: consultation.id }}
-                className="block rounded-lg border border-edge bg-panel px-4 py-3 hover:border-accent-soft"
+                className="block rounded-lg border border-edge bg-panel px-4 py-3 hover:border-accent/40"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">
@@ -96,8 +97,8 @@ export function PatientDetailView({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       consultation.status === 'completed'
-                        ? 'bg-ok/15 text-ok'
-                        : 'bg-accent/15 text-accent-soft'
+                        ? 'bg-ok-soft text-ok'
+                        : 'bg-accent-soft text-accent'
                     }`}
                   >
                     {consultation.status === 'completed' ? 'Completed' : 'In progress'}
@@ -108,8 +109,9 @@ export function PatientDetailView({
                   turns
                 </span>
                 {consultation.summary?.redFlags.length ? (
-                  <p className="mt-1 text-xs text-danger">
-                    ⚑ {consultation.summary.redFlags.join(' · ')}
+                  <p className="mt-1 flex items-center gap-1 text-xs text-danger">
+                    <Flag className="size-3 shrink-0" aria-hidden />
+                    {consultation.summary.redFlags.join(' · ')}
                   </p>
                 ) : null}
               </Link>

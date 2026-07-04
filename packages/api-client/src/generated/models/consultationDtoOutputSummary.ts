@@ -5,6 +5,7 @@
  * Auth, patients, consultations, and AI (copilot/voice) endpoints.
  * OpenAPI spec version: 0.1.0
  */
+import type { ConsultationDtoOutputSummaryProvenance } from './consultationDtoOutputSummaryProvenance';
 import type { ConsultationDtoOutputSummarySymptomsItem } from './consultationDtoOutputSummarySymptomsItem';
 
 /**
@@ -34,4 +35,5 @@ export type ConsultationDtoOutputSummary = {
   redFlags: string[];
   /** @maxLength 2000 */
   additionalNotes: string;
+  provenance?: ConsultationDtoOutputSummaryProvenance;
 } | null;

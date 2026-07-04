@@ -65,7 +65,7 @@ export function LoginView({ form, serverError, google }: LoginViewModel) {
       <GoogleSigninSection {...google} />
       <p className="mt-4 text-sm text-ink-dim">
         No account?{' '}
-        <Link to="/signup" className="text-accent-soft hover:underline">
+        <Link to="/signup" className="text-accent hover:underline">
           Create one
         </Link>
       </p>

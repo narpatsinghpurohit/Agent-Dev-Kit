@@ -12,4 +12,5 @@ export type AskResponseDtoOutputTurnSpeaker = typeof AskResponseDtoOutputTurnSpe
 export const AskResponseDtoOutputTurnSpeaker = {
   doctor: 'doctor',
   patient: 'patient',
+  vedita: 'vedita',
 } as const;

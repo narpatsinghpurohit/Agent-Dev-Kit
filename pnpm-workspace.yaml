@@ -35,6 +35,15 @@ catalog:
   '@tanstack/react-form': ^1.33.0
   tailwindcss: ^4.3.2
   '@tailwindcss/vite': ^4.3.2
+  # shadcn/ui component kit (vendored sources in apps/web/src/components/ui)
+  class-variance-authority: ^0.7.1
+  clsx: ^2.1.1
+  tailwind-merge: ^3.6.0
+  lucide-react: ^1.23.0
+  '@radix-ui/react-slot': ^1.3.0
+  '@radix-ui/react-tabs': ^1.1.16
+  '@radix-ui/react-avatar': ^1.2.1
+  '@radix-ui/react-separator': ^1.1.11
 
   # --- api (NestJS) ---
   '@nestjs/common': ^11.1.27

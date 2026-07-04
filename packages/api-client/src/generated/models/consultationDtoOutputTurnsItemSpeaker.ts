@@ -12,4 +12,5 @@ export type ConsultationDtoOutputTurnsItemSpeaker = typeof ConsultationDtoOutput
 export const ConsultationDtoOutputTurnsItemSpeaker = {
   doctor: 'doctor',
   patient: 'patient',
+  vedita: 'vedita',
 } as const;

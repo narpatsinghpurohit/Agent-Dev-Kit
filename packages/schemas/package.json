@@ -55,6 +55,46 @@
         "default": "./dist/medical.cjs"
       }
     },
+    "./clinical": {
+      "import": {
+        "types": "./dist/clinical.d.ts",
+        "default": "./dist/clinical.js"
+      },
+      "require": {
+        "types": "./dist/clinical.d.cts",
+        "default": "./dist/clinical.cjs"
+      }
+    },
+    "./queue": {
+      "import": {
+        "types": "./dist/queue.d.ts",
+        "default": "./dist/queue.js"
+      },
+      "require": {
+        "types": "./dist/queue.d.cts",
+        "default": "./dist/queue.cjs"
+      }
+    },
+    "./treatment": {
+      "import": {
+        "types": "./dist/treatment.d.ts",
+        "default": "./dist/treatment.js"
+      },
+      "require": {
+        "types": "./dist/treatment.d.cts",
+        "default": "./dist/treatment.cjs"
+      }
+    },
+    "./alerts": {
+      "import": {
+        "types": "./dist/alerts.d.ts",
+        "default": "./dist/alerts.js"
+      },
+      "require": {
+        "types": "./dist/alerts.d.cts",
+        "default": "./dist/alerts.cjs"
+      }
+    },
     "./ai": {
       "import": {
         "types": "./dist/ai.d.ts",

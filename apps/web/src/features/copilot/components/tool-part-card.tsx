@@ -1,3 +1,5 @@
+import { Wrench } from 'lucide-react';
+
 /**
  * Pure renderer for a tool invocation UI part, including the human-in-the-
  * loop approval prompt. Follows the AI Elements Tool component pattern.
@@ -29,7 +31,7 @@ export function ToolPartCard({
   return (
     <div className="rounded-lg border border-edge bg-surface/60 p-3 text-sm">
       <div className="mb-1 flex items-center gap-2">
-        <span aria-hidden>🛠️</span>
+        <Wrench className="size-4 text-ink-dim" aria-hidden />
         <span className="font-medium">{label}</span>
         <StateBadge state={part.state} />
       </div>
@@ -46,14 +48,14 @@ export function ToolPartCard({
           <button
             type="button"
             onClick={() => onApproval(part.approval!.id, true)}
-            className="rounded bg-ok/20 px-2 py-1 text-xs font-medium text-ok"
+            className="rounded bg-ok-soft px-2 py-1 text-xs font-medium text-ok"
           >
             Approve
           </button>
           <button
             type="button"
             onClick={() => onApproval(part.approval!.id, false)}
-            className="rounded bg-danger/20 px-2 py-1 text-xs font-medium text-danger"
+            className="rounded bg-danger-soft px-2 py-1 text-xs font-medium text-danger"
           >
             Deny
           </button>

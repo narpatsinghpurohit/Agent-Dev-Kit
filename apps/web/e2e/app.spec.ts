@@ -73,7 +73,7 @@ test('registers a patient and runs a translated consultation', async ({ page }) 
 test('copilot registers a patient after in-chat approval', async ({ page }) => {
   await login(page);
 
-  await page.getByRole('button', { name: '✦ Copilot' }).click();
+  await page.getByRole('button', { name: 'Vedita' }).click();
   const panel = page.getByTestId('copilot-panel');
   await expect(panel).toBeVisible();
 

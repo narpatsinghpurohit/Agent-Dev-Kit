@@ -16,6 +16,12 @@ export const AiFeatureNameSchema = z.enum([
   'voice-translate',
   // Turns a finished consultation transcript into the structured summary.
   'consultation-extract',
+  // Drafts the AYUSH treatment plan from the finished summary + cohort stats.
+  'treatment-plan',
+  // Private mid-consultation observations for the doctor (vedita turns).
+  'clinical-insight',
+  // Suggests short follow-up questions in the doctor's language.
+  'quick-asks',
 ]);
 export type AiFeatureName = z.infer<typeof AiFeatureNameSchema>;
 

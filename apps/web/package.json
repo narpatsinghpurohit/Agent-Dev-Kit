@@ -16,14 +16,22 @@
   },
   "dependencies": {
     "@ai-sdk/react": "catalog:",
+    "@radix-ui/react-avatar": "catalog:",
+    "@radix-ui/react-separator": "catalog:",
+    "@radix-ui/react-slot": "catalog:",
+    "@radix-ui/react-tabs": "catalog:",
     "@repo/api-client": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-router": "catalog:",
     "ai": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "tailwind-merge": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

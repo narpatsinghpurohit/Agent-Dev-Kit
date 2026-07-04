@@ -1,11 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AiFeatureNameSchema,
   ChatRequestSchema,
   FeatureModelConfigSchema,
   FeatureModelsSchema,
   ModelRefSchema,
   TtsRequestSchema,
 } from './ai';
+
+describe('AiFeatureNameSchema', () => {
+  it('includes the console features and rejects unknown names', () => {
+    for (const feature of ['treatment-plan', 'clinical-insight', 'quick-asks']) {
+      expect(AiFeatureNameSchema.safeParse(feature).success).toBe(true);
+    }
+    expect(AiFeatureNameSchema.safeParse('diagnosis').success).toBe(false);
+  });
+});
 
 describe('ModelRefSchema', () => {
   it('accepts provider:model refs', () => {

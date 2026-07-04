@@ -5,6 +5,7 @@
  * Auth, patients, consultations, and AI (copilot/voice) endpoints.
  * OpenAPI spec version: 0.1.0
  */
+import type { ConsultationListResponseDtoOutputItemsItemTurnsItemKind } from './consultationListResponseDtoOutputItemsItemTurnsItemKind';
 import type { ConsultationListResponseDtoOutputItemsItemTurnsItemSourceLanguage } from './consultationListResponseDtoOutputItemsItemTurnsItemSourceLanguage';
 import type { ConsultationListResponseDtoOutputItemsItemTurnsItemSpeaker } from './consultationListResponseDtoOutputItemsItemTurnsItemSpeaker';
 import type { ConsultationListResponseDtoOutputItemsItemTurnsItemTargetLanguage } from './consultationListResponseDtoOutputItemsItemTurnsItemTargetLanguage';
@@ -13,6 +14,8 @@ export type ConsultationListResponseDtoOutputItemsItemTurnsItem = {
   /** @minLength 1 */
   id: string;
   speaker: ConsultationListResponseDtoOutputItemsItemTurnsItemSpeaker;
+  kind: ConsultationListResponseDtoOutputItemsItemTurnsItemKind;
+  isPrivate: boolean;
   sourceLanguage: ConsultationListResponseDtoOutputItemsItemTurnsItemSourceLanguage;
   targetLanguage: ConsultationListResponseDtoOutputItemsItemTurnsItemTargetLanguage;
   /**
@@ -22,6 +25,11 @@ export type ConsultationListResponseDtoOutputItemsItemTurnsItem = {
   sourceText: string;
   /** @maxLength 4000 */
   translatedText: string;
+  /**
+     * @maxItems 20
+     * @items.maxLength 60
+     */
+  capturedFields: string[];
   /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$ */
   at: string;
 };

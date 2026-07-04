@@ -1,17 +1,102 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-surface: #0b0f19;
-  --color-panel: #111827;
-  --color-edge: #1f2937;
-  --color-ink: #e5e7eb;
-  --color-ink-dim: #9ca3af;
-  --color-accent: #6366f1;
-  --color-accent-soft: #818cf8;
-  --color-danger: #f87171;
-  --color-ok: #34d399;
+  /* Core palette — original token names kept so existing bg-surface/text-ink/… classes still work. */
+  --color-surface: #f5f5f6;
+  --color-panel: #ffffff;
+  --color-edge: #e7e7ea;
+  --color-ink: #0a0a0b;
+  --color-ink-dim: #6b6b73;
+  --color-accent: #7c3aed;
+  --color-accent-soft: #f4efff; /* a TINT now, not a hover shade — hovers use accent-hover */
+  --color-danger: #dc2626;
+  --color-ok: #16a34a;
+
+  /* Extended palette from the vedita design. */
+  --color-accent-deep: #5b1fc4;
+  --color-accent-hover: #6d28d9;
+  --color-ok-soft: #f0fdf4;
+  --color-danger-soft: #fef2f2;
+  --color-pending: #a1a1aa;
+  --color-warn: #ca8a04;
+  --color-insight: #fbf1c9;
+  --color-insight-border: #eadd9a;
+  --color-insight-fg: #4a3f0e;
+  --color-badge-blue: #dbeafe;
+  --color-badge-blue-fg: #1d4ed8;
+  --color-badge-green: #dcfce7;
+  --color-badge-green-fg: #15803d;
+  --color-badge-purple: #f3e8ff;
+  --color-badge-purple-fg: #7e22ce;
+
+  /* shadcn vocabulary aliases so vendored ui/ components work unmodified.
+     Deliberately NO "accent" pair here — our accent IS the violet primary;
+     vendored sources use muted/secondary for hover-subtle shades instead. */
+  --color-background: #f5f5f6;
+  --color-foreground: #0a0a0b;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0b;
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f5f5f6;
+  --color-secondary-foreground: #18181b;
+  --color-muted: #f5f5f6;
+  --color-muted-foreground: #6b6b73;
+  --color-border: #e7e7ea;
+  --color-input: #e7e7ea;
+  --color-ring: #7c3aed;
+  --color-destructive: #dc2626;
+  --color-success: #16a34a;
+
+  /* Radius + shadow scale from the design. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md:
+    0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+  --animate-vedita-pulse: vedita-pulse 1.8s infinite;
+  --animate-vedita-bar: vedita-bar 1s ease-in-out infinite;
+  --animate-vedita-blink: vedita-blink 1.6s infinite;
+}
+
+/* Liveness keyframes (mic pulse, waveform bars, "listening" dots). Kept at the
+   top level so arbitrary `animation:` values can reference them too. */
+@keyframes vedita-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(124 58 237 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgb(124 58 237 / 0);
+  }
+}
+
+@keyframes vedita-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes vedita-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 body {
-  @apply bg-surface text-ink antialiased;
+  @apply bg-surface text-ink font-sans antialiased;
 }

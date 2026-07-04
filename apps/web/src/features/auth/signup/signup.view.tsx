@@ -81,7 +81,7 @@ export function SignupView({ form, serverError, google }: SignupViewModel) {
       <GoogleSigninSection {...google} />
       <p className="mt-4 text-sm text-ink-dim">
         Already registered?{' '}
-        <Link to="/login" className="text-accent-soft hover:underline">
+        <Link to="/login" className="text-accent hover:underline">
           Sign in
         </Link>
       </p>
