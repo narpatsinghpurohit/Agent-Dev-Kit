@@ -18,6 +18,7 @@ import type {
 } from 'msw';
 
 import type {
+  PatientClinicalProfileDtoOutput,
   PatientDtoOutput,
   PatientListResponseDtoOutput
 } from '../models';
@@ -30,6 +31,10 @@ export const getPatientsCreateResponseMock = (overrideResponse: Partial<Extract<
 export const getPatientsGetResponseMock = (overrideResponse: Partial<Extract<PatientDtoOutput, object>> = {}): PatientDtoOutput => ({id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), name: faker.string.alpha({length: {min: 1, max: 120}}), age: faker.number.int({min: 0, max: 120}), sex: faker.helpers.arrayElement(['male','female','other'] as const), language: faker.helpers.arrayElement(['en-IN','hi-IN','bn-IN','gu-IN','kn-IN','ml-IN','mr-IN','od-IN','pa-IN','ta-IN','te-IN'] as const), phone: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), notes: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 2000}}), undefined]), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z', updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 export const getPatientsUpdateResponseMock = (overrideResponse: Partial<Extract<PatientDtoOutput, object>> = {}): PatientDtoOutput => ({id: faker.helpers.fromRegExp("^[0-9a-f]{24}$"), name: faker.string.alpha({length: {min: 1, max: 120}}), age: faker.number.int({min: 0, max: 120}), sex: faker.helpers.arrayElement(['male','female','other'] as const), language: faker.helpers.arrayElement(['en-IN','hi-IN','bn-IN','gu-IN','kn-IN','ml-IN','mr-IN','od-IN','pa-IN','ta-IN','te-IN'] as const), phone: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), notes: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 2000}}), undefined]), createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z', updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getPatientsGetClinicalResponseMock = (overrideResponse: Partial<Extract<PatientClinicalProfileDtoOutput, object>> = {}): PatientClinicalProfileDtoOutput => ({prakriti: faker.helpers.arrayElement([faker.helpers.arrayElement(['vata','pitta','kapha','vata-pitta','pitta-kapha','vata-kapha','tridosha'] as const), null]), conditions: Array.from({ length: faker.number.int({min: 1, max: 30}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 1, max: 60}}))), regimen: Array.from({ length: faker.number.int({min: 1, max: 40}) }, (_, i) => i + 1).map(() => ({name: faker.string.alpha({length: {min: 1, max: 120}}), dose: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 60}}), undefined]), schedule: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 60}}), undefined])})), updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
+
+export const getPatientsUpdateClinicalResponseMock = (overrideResponse: Partial<Extract<PatientClinicalProfileDtoOutput, object>> = {}): PatientClinicalProfileDtoOutput => ({prakriti: faker.helpers.arrayElement([faker.helpers.arrayElement(['vata','pitta','kapha','vata-pitta','pitta-kapha','vata-kapha','tridosha'] as const), null]), conditions: Array.from({ length: faker.number.int({min: 1, max: 30}) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 1, max: 60}}))), regimen: Array.from({ length: faker.number.int({min: 1, max: 40}) }, (_, i) => i + 1).map(() => ({name: faker.string.alpha({length: {min: 1, max: 120}}), dose: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 60}}), undefined]), schedule: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 60}}), undefined])})), updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z', ...overrideResponse})
 
 
 export const getPatientsListMockHandler = (overrideResponse?: PatientListResponseDtoOutput | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PatientListResponseDtoOutput> | PatientListResponseDtoOutput), options?: RequestHandlerOptions) => {
@@ -89,10 +94,36 @@ export const getPatientsRemoveMockHandler = (overrideResponse?: void | ((info: P
       })
   }, options)
 }
+
+export const getPatientsGetClinicalMockHandler = (overrideResponse?: PatientClinicalProfileDtoOutput | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PatientClinicalProfileDtoOutput> | PatientClinicalProfileDtoOutput), options?: RequestHandlerOptions) => {
+  return http.get('*/api/patients/:id/clinical', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPatientsGetClinicalResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
+
+export const getPatientsUpdateClinicalMockHandler = (overrideResponse?: PatientClinicalProfileDtoOutput | ((info: Parameters<Parameters<typeof http.put>[1]>[0]) => Promise<PatientClinicalProfileDtoOutput> | PatientClinicalProfileDtoOutput), options?: RequestHandlerOptions) => {
+  return http.put('*/api/patients/:id/clinical', async (info: Parameters<Parameters<typeof http.put>[1]>[0]) => {
+
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPatientsUpdateClinicalResponseMock(),
+      { status: 200
+      })
+  }, options)
+}
 export const getPatientsMock = () => [
   getPatientsListMockHandler(),
   getPatientsCreateMockHandler(),
   getPatientsGetMockHandler(),
   getPatientsUpdateMockHandler(),
-  getPatientsRemoveMockHandler()
+  getPatientsRemoveMockHandler(),
+  getPatientsGetClinicalMockHandler(),
+  getPatientsUpdateClinicalMockHandler()
 ]

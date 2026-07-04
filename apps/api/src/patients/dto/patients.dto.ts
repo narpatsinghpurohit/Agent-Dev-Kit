@@ -1,5 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import {
+  ClinicalProfileUpdateSchema,
+  PatientClinicalProfileSchema,
   PatientCreateSchema,
   PatientListQuerySchema,
   PatientListResponseSchema,
@@ -14,3 +16,5 @@ export class PatientCreateDto extends createZodDto(PatientCreateSchema) {}
 export class PatientUpdateDto extends createZodDto(PatientUpdateSchema) {}
 export class PatientListQueryDto extends createZodDto(PatientListQuerySchema) {}
 export class PatientListResponseDto extends createZodDto(PatientListResponseSchema) {}
+export class PatientClinicalProfileDto extends createZodDto(PatientClinicalProfileSchema) {}
+export class ClinicalProfileUpdateDto extends createZodDto(ClinicalProfileUpdateSchema) {}

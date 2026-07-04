@@ -36,6 +36,9 @@ export async function createTestApp(
   process.env.AI_MODEL_VOICE_TTS = '';
   process.env.AI_MODEL_VOICE_TRANSLATE = '';
   process.env.AI_MODEL_CONSULTATION_EXTRACT = '';
+  process.env.AI_MODEL_TREATMENT_PLAN = '';
+  process.env.AI_MODEL_CLINICAL_INSIGHT = '';
+  process.env.AI_MODEL_QUICK_ASKS = '';
   process.env.CORS_ORIGINS = 'http://localhost:5173';
   process.env.GOOGLE_OAUTH_CLIENT_ID = '';
   // No implicit admin: suites that test the bootstrap opt in via `env`.

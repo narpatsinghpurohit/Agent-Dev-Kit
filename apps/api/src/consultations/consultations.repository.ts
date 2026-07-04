@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, type QueryFilter, Types } from 'mongoose';
-import type { ConsultationListQuery, ConsultationSummary, LanguageCode } from '@repo/schemas';
+import type {
+  ConsultationListQuery,
+  ConsultationSummary,
+  LanguageCode,
+  RecommendationUpdateInput,
+  TreatmentPlan,
+} from '@repo/schemas';
 import { Consultation, ConsultationTurn } from './consultation.schema';
+import type { TurnCapture } from './summary-extraction';
 
 export type LeanConsultation = Consultation & { _id: Types.ObjectId };
 
@@ -68,18 +75,29 @@ export class ConsultationsRepository {
       .lean();
   }
 
-  /** in_progress → completed with the extracted summary, atomically. */
+  /**
+   * in_progress → completed with the extracted summary, atomically. The
+   * extractor's per-turn capture chips ride along in the same update, each
+   * cited turn addressed by its stable string id via arrayFilters.
+   */
   async completeForOwner(
     ownerId: Types.ObjectId,
     id: string,
     summary: ConsultationSummary,
+    captures: TurnCapture[] = [],
   ): Promise<LeanConsultation | null> {
     if (!Types.ObjectId.isValid(id)) return null;
+    const $set: Record<string, unknown> = { status: 'completed', summary, completedAt: new Date() };
+    const arrayFilters: Record<string, string>[] = [];
+    captures.forEach((capture, i) => {
+      $set[`turns.$[t${i}].capturedFields`] = capture.fields;
+      arrayFilters.push({ [`t${i}.id`]: capture.turnId });
+    });
     return this.model
       .findOneAndUpdate(
         { _id: new Types.ObjectId(id), ownerId, status: 'in_progress' },
-        { $set: { status: 'completed', summary, completedAt: new Date() } },
-        { returnDocument: 'after' },
+        { $set },
+        { returnDocument: 'after', ...(arrayFilters.length > 0 && { arrayFilters }) },
       )
       .lean();
   }
@@ -95,6 +113,66 @@ export class ConsultationsRepository {
       .findOneAndUpdate(
         { _id: new Types.ObjectId(id), ownerId, status: 'completed' },
         { $set: { summary } },
+        { returnDocument: 'after' },
+      )
+      .lean();
+  }
+
+  /** Full-overwrite plan persistence, only on a completed consultation. */
+  async setTreatmentPlanForOwner(
+    ownerId: Types.ObjectId,
+    id: string,
+    plan: TreatmentPlan,
+  ): Promise<LeanConsultation | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+    return this.model
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(id), ownerId, status: 'completed' },
+        { $set: { treatmentPlan: plan } },
+        { returnDocument: 'after' },
+      )
+      .lean();
+  }
+
+  /**
+   * Doctor's verdict on one recommendation. `null` when the consultation or
+   * the recId is unknown (the rec id rides in the filter, so a foreign or
+   * missing one simply matches nothing).
+   */
+  async updateRecommendationForOwner(
+    ownerId: Types.ObjectId,
+    id: string,
+    recId: string,
+    update: RecommendationUpdateInput,
+  ): Promise<LeanConsultation | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+    return this.model
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(id), ownerId, 'treatmentPlan.items.id': recId },
+        {
+          $set: {
+            'treatmentPlan.items.$[rec].state': update.state,
+            // A verdict resets any earlier rewrite unless a new one came along.
+            'treatmentPlan.items.$[rec].editedBody': update.editedBody ?? null,
+          },
+        },
+        { returnDocument: 'after', arrayFilters: [{ 'rec.id': recId }] },
+      )
+      .lean();
+  }
+
+  /** not_synced → synced, atomically; `null` when already synced (or gone). */
+  async signAhmisForOwner(ownerId: Types.ObjectId, id: string): Promise<LeanConsultation | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(id),
+          ownerId,
+          status: 'completed',
+          ahmisStatus: { $ne: 'synced' },
+        },
+        { $set: { ahmisStatus: 'synced', ahmisSyncedAt: new Date() } },
         { returnDocument: 'after' },
       )
       .lean();

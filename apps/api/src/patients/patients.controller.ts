@@ -8,12 +8,15 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 import { CurrentUser, type AuthenticatedUser } from '../common/decorators/current-user.decorator';
 import {
+  ClinicalProfileUpdateDto,
+  PatientClinicalProfileDto,
   PatientCreateDto,
   PatientDto,
   PatientListQueryDto,
@@ -61,5 +64,23 @@ export class PatientsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.patientsService.delete(user.userId, id);
+  }
+
+  // The clinical profile has its own endpoints on purpose — it never rides
+  // on the PatientDto wire shape.
+  @Get(':id/clinical')
+  @ZodResponse({ status: 200, type: PatientClinicalProfileDto })
+  async getClinical(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.patientsService.getClinical(user.userId, id);
+  }
+
+  @Put(':id/clinical')
+  @ZodResponse({ status: 200, type: PatientClinicalProfileDto })
+  async updateClinical(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body: ClinicalProfileUpdateDto,
+  ) {
+    return this.patientsService.updateClinical(user.userId, id, body);
   }
 }

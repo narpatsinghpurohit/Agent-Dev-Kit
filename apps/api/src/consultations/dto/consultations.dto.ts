@@ -8,7 +8,10 @@ import {
   ConsultationListQuerySchema,
   ConsultationListResponseSchema,
   ConsultationSchema,
+  QuickAsksResponseSchema,
+  RecommendationUpdateSchema,
   SummaryUpdateSchema,
+  TreatmentPlanSchema,
 } from '@repo/schemas';
 
 // One DTO class per shared schema — the schema in @repo/schemas stays the
@@ -22,3 +25,6 @@ export class AskResponseDto extends createZodDto(AskResponseSchema) {}
 export class AnswerTextRequestDto extends createZodDto(AnswerTextRequestSchema) {}
 export class AnswerResponseDto extends createZodDto(AnswerResponseSchema) {}
 export class SummaryUpdateDto extends createZodDto(SummaryUpdateSchema) {}
+export class TreatmentPlanDto extends createZodDto(TreatmentPlanSchema) {}
+export class RecommendationUpdateDto extends createZodDto(RecommendationUpdateSchema) {}
+export class QuickAsksResponseDto extends createZodDto(QuickAsksResponseSchema) {}

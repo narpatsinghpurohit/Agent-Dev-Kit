@@ -42,7 +42,10 @@ import type {
   ConsultationListResponseDtoOutput,
   ConsultationsAnswerBody,
   ConsultationsListParams,
-  SummaryUpdateDto
+  QuickAsksResponseDtoOutput,
+  RecommendationUpdateDto,
+  SummaryUpdateDto,
+  TreatmentPlanDtoOutput
 } from '../models';
 
 import { customFetch } from '../../http/custom-fetch';
@@ -825,4 +828,473 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getConsultationsUpdateSummaryMutationOptions(options), queryClient);
+    }
+    export const getConsultationsGenerateTreatmentPlanUrl = (id: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/treatment-plan`
+}
+
+export const consultationsGenerateTreatmentPlan = async (id: string, options?: RequestInit): Promise<ConsultationDtoOutput> => {
+
+  return customFetch<ConsultationDtoOutput>(getConsultationsGenerateTreatmentPlanUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConsultationsGenerateTreatmentPlanMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['consultationsGenerateTreatmentPlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  consultationsGenerateTreatmentPlan(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsultationsGenerateTreatmentPlanMutationResult = NonNullable<Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>>
+
+    export type ConsultationsGenerateTreatmentPlanMutationError = unknown
+
+    export const useConsultationsGenerateTreatmentPlan = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consultationsGenerateTreatmentPlan>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getConsultationsGenerateTreatmentPlanMutationOptions(options), queryClient);
+    }
+    export const getConsultationsGetTreatmentPlanUrl = (id: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/treatment-plan`
+}
+
+export const consultationsGetTreatmentPlan = async (id: string, options?: RequestInit): Promise<TreatmentPlanDtoOutput> => {
+
+  return customFetch<TreatmentPlanDtoOutput>(getConsultationsGetTreatmentPlanUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getConsultationsGetTreatmentPlanQueryKey = (id: string,) => {
+    return [
+    `/api/consultations/${id}/treatment-plan`
+    ] as const;
+    }
+
+
+export const getConsultationsGetTreatmentPlanQueryOptions = <TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getConsultationsGetTreatmentPlanQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>> = ({ signal }) => consultationsGetTreatmentPlan(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ConsultationsGetTreatmentPlanQueryResult = NonNullable<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>>
+export type ConsultationsGetTreatmentPlanQueryError = unknown
+
+
+export function useConsultationsGetTreatmentPlan<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>,
+          TError,
+          Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useConsultationsGetTreatmentPlan<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>,
+          TError,
+          Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useConsultationsGetTreatmentPlan<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useConsultationsGetTreatmentPlan<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getConsultationsGetTreatmentPlanQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getConsultationsGetTreatmentPlanSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getConsultationsGetTreatmentPlanQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>> = ({ signal }) => consultationsGetTreatmentPlan(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ConsultationsGetTreatmentPlanSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>>
+export type ConsultationsGetTreatmentPlanSuspenseQueryError = unknown
+
+
+export function useConsultationsGetTreatmentPlanSuspense<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useConsultationsGetTreatmentPlanSuspense<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useConsultationsGetTreatmentPlanSuspense<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useConsultationsGetTreatmentPlanSuspense<TData = Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof consultationsGetTreatmentPlan>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getConsultationsGetTreatmentPlanSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getConsultationsUpdateRecommendationUrl = (id: string,
+    recId: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/treatment-plan/${recId}`
+}
+
+export const consultationsUpdateRecommendation = async (id: string,
+    recId: string,
+    recommendationUpdateDto: RecommendationUpdateDto, options?: RequestInit): Promise<ConsultationDtoOutput> => {
+
+  return customFetch<ConsultationDtoOutput>(getConsultationsUpdateRecommendationUrl(id,recId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(recommendationUpdateDto)
+  }
+);}
+
+
+
+
+
+export const getConsultationsUpdateRecommendationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsUpdateRecommendation>>, TError,{id: string;recId: string;data: RecommendationUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consultationsUpdateRecommendation>>, TError,{id: string;recId: string;data: RecommendationUpdateDto}, TContext> => {
+
+const mutationKey = ['consultationsUpdateRecommendation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consultationsUpdateRecommendation>>, {id: string;recId: string;data: RecommendationUpdateDto}> = (props) => {
+          const {id,recId,data} = props ?? {};
+
+          return  consultationsUpdateRecommendation(id,recId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsultationsUpdateRecommendationMutationResult = NonNullable<Awaited<ReturnType<typeof consultationsUpdateRecommendation>>>
+    export type ConsultationsUpdateRecommendationMutationBody = RecommendationUpdateDto
+    export type ConsultationsUpdateRecommendationMutationError = unknown
+
+    export const useConsultationsUpdateRecommendation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsUpdateRecommendation>>, TError,{id: string;recId: string;data: RecommendationUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consultationsUpdateRecommendation>>,
+        TError,
+        {id: string;recId: string;data: RecommendationUpdateDto},
+        TContext
+      > => {
+      return useMutation(getConsultationsUpdateRecommendationMutationOptions(options), queryClient);
+    }
+    export const getConsultationsQuickAsksUrl = (id: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/quick-asks`
+}
+
+export const consultationsQuickAsks = async (id: string, options?: RequestInit): Promise<QuickAsksResponseDtoOutput> => {
+
+  return customFetch<QuickAsksResponseDtoOutput>(getConsultationsQuickAsksUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConsultationsQuickAsksMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsQuickAsks>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consultationsQuickAsks>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['consultationsQuickAsks'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consultationsQuickAsks>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  consultationsQuickAsks(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsultationsQuickAsksMutationResult = NonNullable<Awaited<ReturnType<typeof consultationsQuickAsks>>>
+
+    export type ConsultationsQuickAsksMutationError = unknown
+
+    export const useConsultationsQuickAsks = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsQuickAsks>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consultationsQuickAsks>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getConsultationsQuickAsksMutationOptions(options), queryClient);
+    }
+    export const getConsultationsInsightUrl = (id: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/insight`
+}
+
+export const consultationsInsight = async (id: string, options?: RequestInit): Promise<ConsultationDtoOutput> => {
+
+  return customFetch<ConsultationDtoOutput>(getConsultationsInsightUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConsultationsInsightMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsInsight>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consultationsInsight>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['consultationsInsight'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consultationsInsight>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  consultationsInsight(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsultationsInsightMutationResult = NonNullable<Awaited<ReturnType<typeof consultationsInsight>>>
+
+    export type ConsultationsInsightMutationError = unknown
+
+    export const useConsultationsInsight = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsInsight>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consultationsInsight>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getConsultationsInsightMutationOptions(options), queryClient);
+    }
+    export const getConsultationsAhmisSignUrl = (id: string,) => {
+
+
+
+
+  return `/api/consultations/${id}/ahmis-sign`
+}
+
+export const consultationsAhmisSign = async (id: string, options?: RequestInit): Promise<ConsultationDtoOutput> => {
+
+  return customFetch<ConsultationDtoOutput>(getConsultationsAhmisSignUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConsultationsAhmisSignMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsAhmisSign>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consultationsAhmisSign>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['consultationsAhmisSign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consultationsAhmisSign>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  consultationsAhmisSign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsultationsAhmisSignMutationResult = NonNullable<Awaited<ReturnType<typeof consultationsAhmisSign>>>
+
+    export type ConsultationsAhmisSignMutationError = unknown
+
+    export const useConsultationsAhmisSign = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consultationsAhmisSign>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consultationsAhmisSign>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getConsultationsAhmisSignMutationOptions(options), queryClient);
     }

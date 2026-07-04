@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, type QueryFilter, Types } from 'mongoose';
-import type { LanguageCode, PatientListQuery, Sex } from '@repo/schemas';
+import type {
+  ClinicalProfileUpdateInput,
+  LanguageCode,
+  PatientListQuery,
+  Sex,
+} from '@repo/schemas';
 import { Consultation } from '../consultations/consultation.schema';
 import { Patient } from './patient.schema';
 
@@ -88,6 +93,22 @@ export class PatientsRepository {
           ...(Object.keys($set).length && { $set }),
           ...(Object.keys($unset).length && { $unset }),
         },
+        { returnDocument: 'after' },
+      )
+      .lean();
+  }
+
+  async updateClinicalForOwner(
+    ownerId: Types.ObjectId,
+    id: string,
+    profile: ClinicalProfileUpdateInput,
+  ): Promise<LeanPatient | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+    return this.model
+      .findOneAndUpdate(
+        { _id: new Types.ObjectId(id), ownerId },
+        // The profile carries its own timestamp — stamped here, on write.
+        { $set: { clinical: { ...profile, updatedAt: new Date() } } },
         { returnDocument: 'after' },
       )
       .lean();

@@ -33,6 +33,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ClinicalProfileUpdateDto,
+  PatientClinicalProfileDtoOutput,
   PatientCreateDto,
   PatientDtoOutput,
   PatientListResponseDtoOutput,
@@ -623,4 +625,215 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPatientsRemoveMutationOptions(options), queryClient);
+    }
+    export const getPatientsGetClinicalUrl = (id: string,) => {
+
+
+
+
+  return `/api/patients/${id}/clinical`
+}
+
+export const patientsGetClinical = async (id: string, options?: RequestInit): Promise<PatientClinicalProfileDtoOutput> => {
+
+  return customFetch<PatientClinicalProfileDtoOutput>(getPatientsGetClinicalUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPatientsGetClinicalQueryKey = (id: string,) => {
+    return [
+    `/api/patients/${id}/clinical`
+    ] as const;
+    }
+
+
+export const getPatientsGetClinicalQueryOptions = <TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPatientsGetClinicalQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof patientsGetClinical>>> = ({ signal }) => patientsGetClinical(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PatientsGetClinicalQueryResult = NonNullable<Awaited<ReturnType<typeof patientsGetClinical>>>
+export type PatientsGetClinicalQueryError = unknown
+
+
+export function usePatientsGetClinical<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof patientsGetClinical>>,
+          TError,
+          Awaited<ReturnType<typeof patientsGetClinical>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePatientsGetClinical<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof patientsGetClinical>>,
+          TError,
+          Awaited<ReturnType<typeof patientsGetClinical>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePatientsGetClinical<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePatientsGetClinical<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPatientsGetClinicalQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPatientsGetClinicalSuspenseQueryOptions = <TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPatientsGetClinicalQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof patientsGetClinical>>> = ({ signal }) => patientsGetClinical(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PatientsGetClinicalSuspenseQueryResult = NonNullable<Awaited<ReturnType<typeof patientsGetClinical>>>
+export type PatientsGetClinicalSuspenseQueryError = unknown
+
+
+export function usePatientsGetClinicalSuspense<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options: { query:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePatientsGetClinicalSuspense<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePatientsGetClinicalSuspense<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function usePatientsGetClinicalSuspense<TData = Awaited<ReturnType<typeof patientsGetClinical>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseSuspenseQueryOptions<Awaited<ReturnType<typeof patientsGetClinical>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPatientsGetClinicalSuspenseQueryOptions(id,options)
+
+  const query = useSuspenseQuery(queryOptions, queryClient) as  UseSuspenseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getPatientsUpdateClinicalUrl = (id: string,) => {
+
+
+
+
+  return `/api/patients/${id}/clinical`
+}
+
+export const patientsUpdateClinical = async (id: string,
+    clinicalProfileUpdateDto: ClinicalProfileUpdateDto, options?: RequestInit): Promise<PatientClinicalProfileDtoOutput> => {
+
+  return customFetch<PatientClinicalProfileDtoOutput>(getPatientsUpdateClinicalUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(clinicalProfileUpdateDto)
+  }
+);}
+
+
+
+
+
+export const getPatientsUpdateClinicalMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patientsUpdateClinical>>, TError,{id: string;data: ClinicalProfileUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof patientsUpdateClinical>>, TError,{id: string;data: ClinicalProfileUpdateDto}, TContext> => {
+
+const mutationKey = ['patientsUpdateClinical'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patientsUpdateClinical>>, {id: string;data: ClinicalProfileUpdateDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  patientsUpdateClinical(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PatientsUpdateClinicalMutationResult = NonNullable<Awaited<ReturnType<typeof patientsUpdateClinical>>>
+    export type PatientsUpdateClinicalMutationBody = ClinicalProfileUpdateDto
+    export type PatientsUpdateClinicalMutationError = unknown
+
+    export const usePatientsUpdateClinical = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patientsUpdateClinical>>, TError,{id: string;data: ClinicalProfileUpdateDto}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof patientsUpdateClinical>>,
+        TError,
+        {id: string;data: ClinicalProfileUpdateDto},
+        TContext
+      > => {
+      return useMutation(getPatientsUpdateClinicalMutationOptions(options), queryClient);
     }

@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import type {
+  ClinicalProfileUpdateInput,
   Patient as PatientDto,
+  PatientClinicalProfile,
   PatientCreateInput,
   PatientListQuery,
   PatientListResponse,
@@ -50,6 +52,26 @@ export class PatientsService {
     const deleted = await this.patientsRepository.deleteForOwner(new Types.ObjectId(ownerId), id);
     if (!deleted) throw new NotFoundException('Patient not found');
   }
+
+  async getClinical(ownerId: string, id: string): Promise<PatientClinicalProfile> {
+    const patient = await this.patientsRepository.findByIdForOwner(new Types.ObjectId(ownerId), id);
+    if (!patient) throw new NotFoundException('Patient not found');
+    return toClinicalProfileDto(patient);
+  }
+
+  async updateClinical(
+    ownerId: string,
+    id: string,
+    input: ClinicalProfileUpdateInput,
+  ): Promise<PatientClinicalProfile> {
+    const patient = await this.patientsRepository.updateClinicalForOwner(
+      new Types.ObjectId(ownerId),
+      id,
+      input,
+    );
+    if (!patient) throw new NotFoundException('Patient not found');
+    return toClinicalProfileDto(patient);
+  }
 }
 
 /** Lean doc → wire shape. ObjectIds → strings, Dates → ISO; ownerId never leaves. */
@@ -64,5 +86,24 @@ function toDto(patient: LeanPatient): PatientDto {
     notes: patient.notes ?? undefined,
     createdAt: patient.createdAt.toISOString(),
     updatedAt: patient.updatedAt.toISOString(),
+  };
+}
+
+/**
+ * Embedded profile → wire shape. Patients without a stored profile (or from
+ * before the field existed) get the default-empty one; a never-written
+ * profile reports the patient's own timestamp.
+ */
+function toClinicalProfileDto(patient: LeanPatient): PatientClinicalProfile {
+  const clinical = patient.clinical;
+  return {
+    prakriti: clinical?.prakriti ?? null,
+    conditions: clinical?.conditions ?? [],
+    regimen: (clinical?.regimen ?? []).map((item) => ({
+      name: item.name,
+      dose: item.dose ?? undefined,
+      schedule: item.schedule ?? undefined,
+    })),
+    updatedAt: (clinical?.updatedAt ?? patient.updatedAt).toISOString(),
   };
 }

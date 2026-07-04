@@ -1,6 +1,43 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import type { LanguageCode, Sex } from '@repo/schemas';
+import type { LanguageCode, Prakriti, Sex } from '@repo/schemas';
+
+/** One ongoing-regimen entry (medicine, diet, or practice). Plain subdocument (no _id). */
+@Schema({ _id: false })
+export class PatientRegimenItem {
+  @Prop({ required: true, trim: true })
+  name: string;
+
+  @Prop({ trim: true })
+  dose?: string;
+
+  @Prop({ trim: true })
+  schedule?: string;
+}
+
+const PatientRegimenItemSchema = SchemaFactory.createForClass(PatientRegimenItem);
+
+/**
+ * Embedded clinical profile — served ONLY by /patients/:id/clinical, never
+ * part of the PatientDto wire shape. `updatedAt` stays unset until the
+ * profile is first written; reads fall back to the patient's own timestamp.
+ */
+@Schema({ _id: false })
+export class PatientClinical {
+  @Prop({ type: String, default: null })
+  prakriti: Prakriti | null;
+
+  @Prop({ type: [String], default: [] })
+  conditions: string[];
+
+  @Prop({ type: [PatientRegimenItemSchema], default: [] })
+  regimen: PatientRegimenItem[];
+
+  @Prop({ type: Date })
+  updatedAt?: Date;
+}
+
+const PatientClinicalSchema = SchemaFactory.createForClass(PatientClinical);
 
 @Schema({ collection: 'patients', timestamps: true })
 export class Patient {
@@ -25,6 +62,13 @@ export class Patient {
 
   @Prop()
   notes?: string;
+
+  /** Optional at the type level: docs created before this field lack it. */
+  @Prop({
+    type: PatientClinicalSchema,
+    default: () => ({ prakriti: null, conditions: [], regimen: [] }),
+  })
+  clinical?: PatientClinical;
 
   // set by { timestamps: true }
   createdAt: Date;

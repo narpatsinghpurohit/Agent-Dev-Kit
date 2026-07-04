@@ -1,29 +1,135 @@
-# Example prompt eval for the copilot instructions (opt-in — needs a real
-# provider key; see .github/workflows/evals.yml). Extend per feature as your
-# prompts grow; record PROMPT_VERSION bumps alongside eval runs.
-description: copilot instructions sanity evals
+# Prompt evals (opt-in — needs a real provider key; see
+# .github/workflows/evals.yml, workflow_dispatch only). One shared template:
+# each test injects its feature's instructions + input, so cases never
+# cross-multiply. Instruction texts mirror apps/api/src/ai/prompts/* — keep
+# them in sync and record PROMPT_VERSION bumps alongside eval runs
+# (consultation-extract@2, treatment-plan@1, clinical-insight@1, quick-asks@1).
+description: vedita prompt sanity evals (copilot + medical features)
 
 prompts:
   - |
-    You are the in-app copilot for a task-management product. The signed-in user is {{userName}}.
-    Rules:
-    - Be concise. Confirm what you did after a tool runs.
-    - Never invent task ids; find them with listTasks first.
-    User message: {{message}}
+    {{instructions}}
+
+    {{input}}
 
 providers:
   - google:gemini-2.5-flash-lite
 
 tests:
-  - vars:
-      userName: Ada
-      message: What can you do?
+  # --- copilot@2 -----------------------------------------------------------
+  - description: copilot describes real capabilities
+    vars:
+      instructions: |
+        You are the in-app copilot for a task-management product. The signed-in user is Ada.
+        Rules:
+        - Be concise. Confirm what you did after a tool runs.
+        - Never invent task ids; find them with listTasks first.
+      input: 'User message: What can you do?'
     assert:
       - type: llm-rubric
         value: mentions managing tasks without inventing unrelated capabilities
-  - vars:
-      userName: Ada
-      message: Delete the task about taxes
+  - description: copilot looks tasks up before acting
+    vars:
+      instructions: |
+        You are the in-app copilot for a task-management product. The signed-in user is Ada.
+        Rules:
+        - Be concise. Confirm what you did after a tool runs.
+        - Never invent task ids; find them with listTasks first.
+      input: 'User message: Delete the task about taxes'
     assert:
       - type: llm-rubric
         value: says it will look the task up first (or asks to list tasks) rather than fabricating an id
+
+  # --- consultation-extract@2 ----------------------------------------------
+  - description: EHR extraction returns valid envelopes with in-range citations
+    vars:
+      instructions: |
+        You extract a structured clinical intake record from a doctor-patient interview transcript. You are a record-keeping assistant, NOT a diagnostician — capture only what was actually said; never infer diagnoses or invent details.
+        The transcript is numbered: each line is "[<index>] <Speaker> (<ISO time>): <text>". Cite the single line an extraction came from via its index.
+        Output STRICT JSON (no markdown, no commentary). Every field is an envelope { "value": ..., "confidence": number 0..1, "sourceTurnIndex": number|null }:
+        { "chiefComplaint": envelope(string), "symptoms": [envelope({ "name", "duration"?, "severity"?, "notes"? })], "history": envelope(string), "medications": [envelope(string)], "allergies": [envelope(string)], "redFlags": [envelope(string)], "additionalNotes": envelope(string) }
+        Empty sections become { "value": "", "confidence": 0, "sourceTurnIndex": null } or [] — never omitted keys.
+      input: |
+        [0] Doctor (2026-07-04T09:00:00Z): What brings you in today?
+        [1] Patient (2026-07-04T09:01:00Z): I have had a fever for two days and a constant headache.
+        [2] Doctor (2026-07-04T09:02:00Z): Are you taking any medicines?
+        [3] Patient (2026-07-04T09:03:00Z): Only paracetamol, for the fever.
+    assert:
+      - type: javascript
+        value: |
+          const cleaned = output.replace(/^```(?:json)?\s*/m, '').replace(/```\s*$/m, '').trim();
+          const record = JSON.parse(cleaned);
+          const envelopes = [
+            record.chiefComplaint, record.history, record.additionalNotes,
+            ...record.symptoms, ...record.medications, ...record.allergies, ...record.redFlags,
+          ];
+          return envelopes.every((e) =>
+            typeof e.confidence === 'number' && e.confidence >= 0 && e.confidence <= 1 &&
+            (e.sourceTurnIndex === null || (Number.isInteger(e.sourceTurnIndex) && e.sourceTurnIndex >= 0 && e.sourceTurnIndex <= 3)));
+
+  # --- treatment-plan@1 ------------------------------------------------------
+  - description: plan covers all 3 categories and only quotes the injected COHORT percentage
+    vars:
+      instructions: |
+        You draft an AYUSH (Ayurvedic) treatment plan for a doctor to review. You are a drafting assistant, NOT the prescriber.
+        Output STRICT JSON (no markdown): { "rationale": string, "recommendations": [ { "category": "herbal"|"ahara"|"vihara", "body": string, "confidence": number, "evidence": string } ] }
+        Rules: at least one and at most two recommendations per category. Percentages and counts in evidence may ONLY quote the provided COHORT line verbatim; if it says "insufficient data", use qualitative evidence — NEVER invent statistics.
+      input: |
+        PATIENT PROFILE: {"prakriti":"vata-kapha","conditions":["Hypertension","Obesity"],"regimen":[{"name":"Sarpagandha vati","dose":"1","schedule":"BD"}]}
+        VITALS TRENDS: bp: ↑ 3 visits rising; weight: ↓ 1.5 kg / 2 mo
+        CONSULTATION SUMMARY: {"chiefComplaint":"Headache and giddiness for a week","symptoms":[{"name":"headache","duration":"1 week"}],"history":"Hypertension for 4 years","medications":["Sarpagandha vati"],"allergies":[],"redFlags":[]}
+        COHORT: 62% of 12 similar patients improved systolic control
+    assert:
+      - type: javascript
+        value: |
+          const cleaned = output.replace(/^```(?:json)?\s*/m, '').replace(/```\s*$/m, '').trim();
+          const plan = JSON.parse(cleaned);
+          const categories = new Set(plan.recommendations.map((r) => r.category));
+          if (!(categories.has('herbal') && categories.has('ahara') && categories.has('vihara'))) return false;
+          // Any percentage anywhere in the plan must be the injected 62%.
+          const percentages = JSON.stringify(plan).match(/\d+(?:\.\d+)?\s*%/g) ?? [];
+          return percentages.every((p) => p.replace(/\s/g, '') === '62%');
+
+  # --- clinical-insight@1 ----------------------------------------------------
+  - description: insight cites no statistics when the cohort is insufficient
+    vars:
+      instructions: |
+        You are Vedita, whispering ONE private mid-consultation observation to the doctor.
+        Output STRICT JSON (no markdown): { "insight": string } — insight <= 500 chars, doctor's language.
+        Numbers may ONLY quote the provided vitals trends or COHORT line. If the COHORT line says "insufficient data", cite no statistics. You observe and correlate — never diagnose, never prescribe.
+      input: |
+        RECENT TRANSCRIPT:
+        Doctor: Any headaches recently?
+        Patient: Yes, most mornings, with some giddiness.
+        VITALS TRENDS: none recorded
+        COHORT: insufficient data
+    assert:
+      - type: javascript
+        value: |
+          const cleaned = output.replace(/^```(?:json)?\s*/m, '').replace(/```\s*$/m, '').trim();
+          const parsed = JSON.parse(cleaned);
+          if (typeof parsed.insight !== 'string' || parsed.insight.length === 0 || parsed.insight.length > 500) return false;
+          // No cohort → no percentages may appear.
+          return !/\d+(?:\.\d+)?\s*%/.test(parsed.insight);
+      - type: llm-rubric
+        value: an observation for the doctor that neither diagnoses nor prescribes
+
+  # --- quick-asks@1 ----------------------------------------------------------
+  - description: quick-asks returns 3-4 short non-diagnostic questions
+    vars:
+      instructions: |
+        You suggest the doctor's next interview questions during a live patient consultation.
+        Output STRICT JSON (no markdown): { "questions": [string, string, string] } — 3 to 4 questions, each <= 200 chars, in the DOCTOR's language. Short, single-topic follow-ups only; never suggest a diagnosis, treatment, or leading question; never repeat a question the doctor already asked.
+      input: |
+        Doctor: What brings you in today?
+        Patient: I have had a fever for two days and a constant headache.
+    assert:
+      - type: javascript
+        value: |
+          const cleaned = output.replace(/^```(?:json)?\s*/m, '').replace(/```\s*$/m, '').trim();
+          const parsed = JSON.parse(cleaned);
+          return Array.isArray(parsed.questions) &&
+            parsed.questions.length >= 3 && parsed.questions.length <= 4 &&
+            parsed.questions.every((q) => typeof q === 'string' && q.length > 0 && q.length <= 200);
+      - type: llm-rubric
+        value: fact-gathering follow-up questions with no diagnosis or treatment suggestions

@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AiModule } from './ai/ai.module';
+import { AlertsModule } from './alerts/alerts.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -13,8 +14,10 @@ import { type Env, validateEnv } from './config/env.schema';
 import { ConsultationsModule } from './consultations/consultations.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PatientsModule } from './patients/patients.module';
+import { QueueModule } from './queue/queue.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
+import { VitalsModule } from './vitals/vitals.module';
 
 @Module({
   imports: [
@@ -60,6 +63,9 @@ import { UsersModule } from './users/users.module';
     MailerModule,
     AuthModule,
     PatientsModule,
+    VitalsModule,
+    QueueModule,
+    AlertsModule,
     ConsultationsModule,
     AiModule,
   ],
