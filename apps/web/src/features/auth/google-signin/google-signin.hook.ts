@@ -31,7 +31,7 @@ export function useGoogleSignin(redirectTo?: string) {
             client_id: clientId,
             callback: (response) => {
               void loginWithGoogle({ credential: response.credential })
-                .then(() => navigate({ to: redirectTo ?? '/patients' }))
+                .then(() => navigate({ to: redirectTo ?? '/dashboard' }))
                 .catch((cause) => {
                   setError(cause instanceof Error ? cause.message : 'Google sign-in failed');
                 });

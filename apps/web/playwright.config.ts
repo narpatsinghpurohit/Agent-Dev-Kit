@@ -12,6 +12,10 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'retain-on-failure',
+    // The console is a three-column desktop screen (272px + fluid + 356px
+    // inside the shell rail) — the default 1280×720 viewport squeezes the
+    // composer input to zero width.
+    viewport: { width: 1600, height: 900 },
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
   webServer: [

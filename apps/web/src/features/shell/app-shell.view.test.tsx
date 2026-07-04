@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../shared/testing/test-utils';
@@ -19,10 +19,22 @@ function makeProps(overrides: Partial<Parameters<typeof AppShellView>[0]> = {}) 
 describe('AppShellView', () => {
   it('renders the wordmark, nav rail, and user identity', async () => {
     await renderWithProviders(<AppShellView {...makeProps()} />);
-    expect(screen.getByRole('link', { name: /vedita/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /vedita/i })).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Patients' })).toBeInTheDocument();
     expect(screen.getByText('Demo User')).toBeInTheDocument();
     expect(screen.getByText('DU')).toBeInTheDocument();
+  });
+
+  it('puts the dashboard link first in the nav rail', async () => {
+    await renderWithProviders(<AppShellView {...makeProps({ isAdmin: true })} />);
+    const rail = screen.getAllByRole('complementary')[0];
+    const railLinks = within(rail as HTMLElement).getAllByRole('link');
+    expect(railLinks.map((link) => link.textContent)).toEqual([
+      'Dashboard',
+      'Patients',
+      'Settings',
+    ]);
   });
 
   it('hides the settings link from members', async () => {

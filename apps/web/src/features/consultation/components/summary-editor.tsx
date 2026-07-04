@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ConsultationSummary, Symptom } from '@repo/schemas';
-import { inputClass, primaryButtonClass } from '../../../components/form-styles';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
 
 /**
  * Pure editor for the AI-drafted record — plain local state, saved as a
@@ -43,18 +45,17 @@ export function SummaryEditor({
 
   return (
     <form
-      className="flex flex-col gap-4 rounded-xl border border-edge bg-panel p-6"
+      className="flex flex-col gap-3 rounded-lg border border-edge bg-panel p-3.5"
       data-testid="summary-editor"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
       }}
     >
-      <h2 className="text-lg font-semibold">Consultation record</h2>
+      <h2 className="text-sm font-semibold">Consultation record</h2>
 
       <Labeled label="Chief complaint">
-        <input
-          className={inputClass}
+        <Input
           value={chiefComplaint}
           onChange={(event) => setChiefComplaint(event.target.value)}
           maxLength={500}
@@ -63,41 +64,33 @@ export function SummaryEditor({
       </Labeled>
 
       <Labeled label="Symptoms" hint="one per line: name | duration | mild/moderate/severe | notes">
-        <textarea
-          className={`${inputClass} min-h-20 font-mono text-sm`}
+        <Textarea
+          className="min-h-20 font-mono text-sm"
           value={symptomsText}
           onChange={(event) => setSymptomsText(event.target.value)}
         />
       </Labeled>
 
       <Labeled label="Red flags" hint="one per line — shown prominently on the patient record">
-        <textarea
-          className={`${inputClass} min-h-16`}
+        <Textarea
+          className="min-h-16"
           value={redFlags}
           onChange={(event) => setRedFlags(event.target.value)}
         />
       </Labeled>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Labeled label="Medications" hint="comma-separated">
-          <input
-            className={inputClass}
-            value={medications}
-            onChange={(event) => setMedications(event.target.value)}
-          />
+          <Input value={medications} onChange={(event) => setMedications(event.target.value)} />
         </Labeled>
         <Labeled label="Allergies" hint="comma-separated">
-          <input
-            className={inputClass}
-            value={allergies}
-            onChange={(event) => setAllergies(event.target.value)}
-          />
+          <Input value={allergies} onChange={(event) => setAllergies(event.target.value)} />
         </Labeled>
       </div>
 
       <Labeled label="History">
-        <textarea
-          className={`${inputClass} min-h-16`}
+        <Textarea
+          className="min-h-16"
           value={history}
           onChange={(event) => setHistory(event.target.value)}
           maxLength={2000}
@@ -105,8 +98,8 @@ export function SummaryEditor({
       </Labeled>
 
       <Labeled label="Additional notes">
-        <textarea
-          className={`${inputClass} min-h-16`}
+        <Textarea
+          className="min-h-16"
           value={additionalNotes}
           onChange={(event) => setAdditionalNotes(event.target.value)}
           maxLength={2000}
@@ -114,9 +107,9 @@ export function SummaryEditor({
       </Labeled>
 
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={isSaving} className={primaryButtonClass}>
+        <Button type="submit" disabled={isSaving}>
           {isSaving ? 'Saving…' : 'Save record'}
-        </button>
+        </Button>
         {savedAt ? (
           <span role="status" className="text-sm text-ok">
             Saved.

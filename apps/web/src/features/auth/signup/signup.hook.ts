@@ -17,7 +17,7 @@ export function useSignup() {
       setServerError(null);
       try {
         await signup(value);
-        await navigate({ to: '/patients' });
+        await navigate({ to: '/dashboard' });
       } catch (error) {
         setServerError(error instanceof Error ? error.message : 'Signup failed');
       }

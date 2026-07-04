@@ -14,5 +14,8 @@ export * from './generated/models';
 export * from './generated/auth/auth';
 export * from './generated/patients/patients';
 export * from './generated/consultations/consultations';
+export * from './generated/vitals/vitals';
+export * from './generated/queue/queue';
+export * from './generated/alerts/alerts';
 export * from './generated/ai/ai';
 export * from './generated/settings/settings';

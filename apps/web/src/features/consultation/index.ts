@@ -1,1 +1,1 @@
-export { InterviewPage } from './interview/interview';
+export { ConsolePage } from './console/console';

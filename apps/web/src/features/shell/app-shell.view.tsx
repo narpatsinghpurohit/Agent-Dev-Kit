@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { LogOut, Settings, Sparkles, Users } from 'lucide-react';
+import { LayoutDashboard, LogOut, Settings, Sparkles, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { Button } from '../../components/ui/button';
@@ -31,7 +31,7 @@ export function AppShellView({
   return (
     <div className="flex h-screen flex-col">
       <header className="flex h-14 shrink-0 items-center gap-4 border-b border-edge bg-panel px-5">
-        <Link to="/patients" className="text-lg font-bold tracking-tight">
+        <Link to="/dashboard" className="text-lg font-bold tracking-tight">
           vedita<span className="text-accent">.</span>
           <span className="font-semibold text-ink-dim">ai</span>
         </Link>
@@ -76,6 +76,15 @@ export function AppShellView({
       </header>
       <div className="flex min-h-0 flex-1">
         <aside className="flex w-[200px] shrink-0 flex-col gap-1 border-r border-edge bg-panel p-3">
+          <Link
+            to="/dashboard"
+            className={railLinkClass}
+            activeProps={railLinkActive}
+            inactiveProps={railLinkInactive}
+          >
+            <LayoutDashboard aria-hidden />
+            Dashboard
+          </Link>
           <Link
             to="/patients"
             className={railLinkClass}
