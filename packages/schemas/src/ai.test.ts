@@ -12,6 +12,8 @@ describe('ModelRefSchema', () => {
     expect(ModelRefSchema.safeParse('google:gemini-3.5-flash').success).toBe(true);
     expect(ModelRefSchema.safeParse('bedrock:us.anthropic.claude-sonnet-5').success).toBe(true);
     expect(ModelRefSchema.safeParse('mock:echo').success).toBe(true);
+    // Sarvam model ids contain their own colon (bulbul:v3) — the ref keeps it.
+    expect(ModelRefSchema.safeParse('sarvam:bulbul:v3').success).toBe(true);
   });
 
   it('rejects unknown providers and bare model ids', () => {

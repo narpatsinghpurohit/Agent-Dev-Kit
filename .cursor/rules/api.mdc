@@ -6,7 +6,7 @@ alwaysApply: false
 
 - DTOs are zod-first via nestjs-zod (`createZodDto` + `@ZodResponse`); class-validator/class-transformer are lint-banned. detail: docs/guidelines/api-design.md
 - Auth is plain guards + @nestjs/jwt — passport is lint-banned. detail: docs/guidelines/security.md
-- Ownership is a query predicate: every tasks repo query filters `ownerId`; missing or foreign resources return 404, never 403.
+- Ownership is a query predicate: every patients/consultations repo query filters `ownerId`; missing or foreign resources return 404, never 403.
 - @nestjs/throttler TTLs are in MILLISECONDS, not seconds.
 - Mongoose types never leave apps/api — wire contracts live in `@repo/schemas`, and `ownerId` is never on the wire.
 - All errors flow through the global AllExceptionsFilter into the ErrorResponseSchema envelope — never hand-roll error shapes. detail: docs/guidelines/error-handling.md

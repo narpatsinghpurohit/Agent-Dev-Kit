@@ -21,7 +21,7 @@ export function useLogin(redirectTo?: string) {
       setServerError(null);
       try {
         await login(value);
-        await navigate({ to: redirectTo ?? '/tasks' });
+        await navigate({ to: redirectTo ?? '/patients' });
       } catch (error) {
         setServerError(error instanceof Error ? error.message : 'Login failed');
       }

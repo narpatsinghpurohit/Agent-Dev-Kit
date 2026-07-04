@@ -83,6 +83,7 @@ export class ModelRegistryService implements OnModuleInit {
       const secrets = {
         google: this.settingsService.getSecret('googleApiKey'),
         bedrock: this.settingsService.getSecret('bedrockApiKey'),
+        sarvam: this.settingsService.getSecret('sarvamApiKey'),
       };
 
       const get = <K extends keyof Env>(key: K) => this.configService.get(key, { infer: true });
@@ -98,6 +99,7 @@ export class ModelRegistryService implements OnModuleInit {
       if (ai.providerMode === 'auto') {
         if (secrets.google) available.add('google');
         if (secrets.bedrock) available.add('bedrock');
+        if (secrets.sarvam) available.add('sarvam');
       }
       features = Object.fromEntries(
         (Object.entries(features) as Array<[AiFeatureName, FeatureModelConfig]>).map(
@@ -140,6 +142,8 @@ export class ModelRegistryService implements OnModuleInit {
         [AiFeatureName, FeatureModelConfig]
       >) {
         if (!config.capabilities.includes('chat') && !config.capabilities.includes('stt')) continue;
+        // Sarvam is REST-only (src/ai/sarvam/) — it has no AI SDK model to alias.
+        if (config.model.startsWith('sarvam:')) continue;
         languageModels[feature] = wrapLanguageModel({
           // Dynamic refs can't satisfy the registry's template-literal types.
           model: registry.languageModel(

@@ -22,7 +22,7 @@ failure modes drove this decision:
    scripts are opt-in via `allowBuilds` (native binaries yes, telemetry postinstalls no).
 2. **`@repo/schemas` is a compiled package.** tsup builds dual ESM + CJS + `.d.ts` from
    `src/*.ts` entries (see `packages/schemas/tsup.config.ts`), with per-domain subpath
-   exports (`@repo/schemas/tasks`, `/auth`, …). Turbo's `"dependsOn": ["^build"]` makes
+   exports (`@repo/schemas/medical`, `/auth`, …). Turbo's `"dependsOn": ["^build"]` makes
    every consumer build wait for the schemas build.
 
 ## Consequences

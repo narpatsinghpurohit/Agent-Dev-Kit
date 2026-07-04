@@ -20,19 +20,19 @@ The auth and authorization model as built in `apps/api/src/auth/` plus the handf
 ## Must
 
 - **Authz is the global guard + explicit opt-out.** `AuthGuard` is registered as `APP_GUARD` in `apps/api/src/app.module.ts`; every route requires a Bearer access token unless decorated `@Public()`. New endpoints are protected by default — being public is the decision that must appear in the diff.
-- **Ownership is a query predicate.** Every tasks query filters by `ownerId` inside the repository (`findOne({ _id, ownerId })` in `apps/api/src/tasks/tasks.repository.ts`) — never fetch-then-check. Missing and foreign resources are indistinguishable: **404, never 403** (no existence leak).
+- **Ownership is a query predicate.** Every patients/consultations query filters by `ownerId` inside the repository (`findOne({ _id, ownerId })` in `apps/api/src/patients/patients.repository.ts`) — never fetch-then-check. Missing and foreign resources are indistinguishable: **404, never 403** (no existence leak).
 - **Take user identity from the JWT only** — `@CurrentUser()` in controllers, `userId` closure in copilot tools. Never from a body, query param, or model output.
 - **Hash by secret type:** passwords → argon2id with OWASP parameters (`ARGON2_OPTIONS` in `apps/api/src/common/argon2.ts`); high-entropy opaque tokens (refresh, reset, verify) → single SHA-256 (`TokenService.hashToken`) — they have 256 bits of entropy, a slow hash adds nothing. Only hashes touch the database.
 - **Throttler TTLs are MILLISECONDS.** Global default `{ ttl: 60_000, limit: 100 }` (`app.module.ts`); credential endpoints tighten to `@Throttle({ default: { limit: 5, ttl: 60_000 } })`. `ThrottlerGuard` is registered before `AuthGuard` so brute-force traffic is rejected without token-verification work. Writing `ttl: 60` means 60 ms — effectively no limit.
 - **Prevent account enumeration everywhere:** `forgot-password` and `resend-verification` return 204 whether or not the account exists; login verifies against `DUMMY_ARGON2_HASH` when the user is missing so response timing is constant (`auth.service.ts`).
 - **Keep secrets out of logs.** nestjs-pino redacts `req.headers.authorization` and `req.headers.cookie` (`app.module.ts`); never log tokens, hashes, or passwords yourself. Secrets come from env (validated in `config/env.schema.ts`) or the encrypted runtime settings store (`app_settings`, AES-256-GCM — see docs/guidelines/configuration.md), never from code.
 - **Web token storage: memory only.** The access token lives in a module-scope variable behind the injected `TokenStorage` (`apps/web/src/lib/auth.ts`); the refresh token is an httpOnly cookie JS never sees. Session continuity across reloads comes from the silent refresh in `bootstrapAuth()` before the router mounts.
-- **Copilot tools inherit REST security.** Tools call `TasksService` — the same authz/validation path as HTTP — with `userId` captured from the verified JWT (`apps/api/src/ai/copilot/copilot-tools.service.ts`), and every mutating tool requires in-chat user approval (`apps/api/src/ai/chat/chat.service.ts`):
+- **Copilot tools inherit REST security.** Tools call `PatientsService` / `ConsultationsService` — the same authz/validation path as HTTP — with `userId` captured from the verified JWT (`apps/api/src/ai/copilot/copilot-tools.service.ts`), and every mutating tool requires in-chat user approval (`apps/api/src/ai/chat/chat.service.ts`):
   ```ts
   toolApproval: {
-    createTask: 'user-approval',
-    updateTask: 'user-approval',
-    deleteTask: 'user-approval',
+    createPatient: 'user-approval',
+    // listPatients / getPatientHistory are read-only — no approval friction.
+  },
   ```
 
 ## Sign in with Google
@@ -94,12 +94,12 @@ const payload = await this.tokenService.verifyAccessToken(token);
 request.user = { userId: payload.sub };
 ```
 
-`apps/api/src/tasks/tasks.service.ts` — ownership as 404:
+`apps/api/src/patients/patients.service.ts` — ownership as 404:
 
 ```ts
-const task = await this.tasksRepository.findByIdForOwner(new Types.ObjectId(ownerId), id);
+const patient = await this.patientsRepository.findByIdForOwner(new Types.ObjectId(ownerId), id);
 // 404 (not 403) when it exists but is someone else's — no existence leak.
-if (!task) throw new NotFoundException('Task not found');
+if (!patient) throw new NotFoundException('Patient not found');
 ```
 
 ## Where to look

@@ -83,10 +83,8 @@ export class ChatService {
       tools,
       stopWhen: isStepCount(8),
       toolApproval: {
-        createTask: 'user-approval',
-        updateTask: 'user-approval',
-        deleteTask: 'user-approval',
-        // listTasks is read-only — no approval friction.
+        createPatient: 'user-approval',
+        // listPatients / getPatientHistory are read-only — no approval friction.
       },
       abortSignal: abortController.signal,
       onError: ({ error }) => {

@@ -13,7 +13,7 @@ We wanted a structure that is (a) mechanically checkable, (b) cheap to follow, a
 
 ## Decision
 
-Every stateful screen is a **triple** (see `apps/web/src/features/tasks/task-list/`):
+Every stateful screen is a **triple** (see `apps/web/src/features/patients/patient-list/`):
 
 - `<name>.hook.ts` — the ViewModel: ALL data fetching, mutations, form state, and
   navigation; returns one typed object. Plain `.ts` — JSX in a hook file is a parse error.
@@ -21,9 +21,9 @@ Every stateful screen is a **triple** (see `apps/web/src/features/tasks/task-lis
 - `<name>.tsx` — a ~5-line container wiring the two:
 
   ```tsx
-  export function TaskListPage({ statusFilter }: { statusFilter?: TaskStatus }) {
-    const viewModel = useTaskList(statusFilter);
-    return <TaskListView {...viewModel} />;
+  export function PatientListPage() {
+    const viewModel = usePatientList();
+    return <PatientListView {...viewModel} />;
   }
   ```
 

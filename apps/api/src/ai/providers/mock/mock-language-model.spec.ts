@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { MockLanguageModel } from './mock-language-model';
 
 const TOOLS = [
-  { type: 'function' as const, name: 'createTask', inputSchema: {} },
-  { type: 'function' as const, name: 'listTasks', inputSchema: {} },
+  { type: 'function' as const, name: 'createPatient', inputSchema: {} },
+  { type: 'function' as const, name: 'listPatients', inputSchema: {} },
 ];
 
 function options(prompt: unknown, tools = TOOLS): LanguageModelV4CallOptions {
@@ -30,26 +30,31 @@ async function collect(model: MockLanguageModel, opts: LanguageModelV4CallOption
 describe('MockLanguageModel', () => {
   const model = new MockLanguageModel('copilot-chat');
 
-  it('emits a createTask tool call for "create a task called X"', async () => {
-    const parts = await collect(model, options([userMessage('Create a task called Ship v1')]));
+  it('emits a createPatient tool call for "register a patient called X"', async () => {
+    const parts = await collect(
+      model,
+      options([userMessage('Register a patient called Asha Devi, age 54')]),
+    );
     const toolCall = parts.find((p) => p.type === 'tool-call');
     expect(toolCall).toBeDefined();
-    expect(toolCall?.toolName).toBe('createTask');
-    expect(JSON.parse(toolCall?.input as string)).toEqual({ title: 'Ship v1' });
+    expect(toolCall?.toolName).toBe('createPatient');
+    expect(JSON.parse(toolCall?.input as string)).toMatchObject({ name: 'Asha Devi', age: 54 });
     expect(parts.at(-1)?.type).toBe('finish');
   });
 
-  it('extracts quoted titles', async () => {
+  it('extracts quoted names', async () => {
     const result = await model.doGenerate(
-      options([userMessage('please add a task "Buy milk" for me')]),
+      options([userMessage('please add a patient "Murugan Selvam" for me')]),
     );
     const call = result.content.find((c) => c.type === 'tool-call');
-    expect(JSON.parse((call as { input: string }).input)).toEqual({ title: 'Buy milk' });
+    expect(JSON.parse((call as { input: string }).input)).toMatchObject({
+      name: 'Murugan Selvam',
+    });
   });
 
-  it('emits listTasks for "show my tasks"', async () => {
-    const parts = await collect(model, options([userMessage('show my tasks')]));
-    expect(parts.find((p) => p.type === 'tool-call')?.toolName).toBe('listTasks');
+  it('emits listPatients for "show my patients"', async () => {
+    const parts = await collect(model, options([userMessage('show my patients')]));
+    expect(parts.find((p) => p.type === 'tool-call')?.toolName).toBe('listPatients');
   });
 
   it('echoes when no tool matches', async () => {
@@ -64,10 +69,10 @@ describe('MockLanguageModel', () => {
 
   it('confirms after a tool result', async () => {
     const prompt = [
-      userMessage('create a task called X'),
+      userMessage('register a patient called X'),
       {
         role: 'assistant',
-        content: [{ type: 'tool-call', toolCallId: 'c1', toolName: 'createTask', input: '{}' }],
+        content: [{ type: 'tool-call', toolCallId: 'c1', toolName: 'createPatient', input: '{}' }],
       },
       {
         role: 'tool',
@@ -75,7 +80,7 @@ describe('MockLanguageModel', () => {
           {
             type: 'tool-result',
             toolCallId: 'c1',
-            toolName: 'createTask',
+            toolName: 'createPatient',
             output: { type: 'json', value: { created: { id: 'x' } } },
           },
         ],
@@ -87,7 +92,7 @@ describe('MockLanguageModel', () => {
       .map((p) => p.delta)
       .join('');
     expect(text).toContain('Done');
-    expect(text).toContain('createTask');
+    expect(text).toContain('createPatient');
   });
 
   it('reports plausible usage numbers', async () => {

@@ -6,7 +6,7 @@ import { SettingsPage } from '../../features/settings';
 export const Route = createFileRoute('/_authenticated/settings')({
   beforeLoad: ({ context }) => {
     if (context.auth.getState().user?.role !== 'admin') {
-      throw redirect({ to: '/tasks' });
+      throw redirect({ to: '/patients' });
     }
   },
   loader: ({ context }) => context.queryClient.ensureQueryData(getSettingsGetQueryOptions()),

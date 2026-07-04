@@ -10,16 +10,22 @@ export const AiFeatureNameSchema = z.enum([
   'summarize',
   'speech-stt',
   'speech-tts',
+  // The consultation voice pipeline (Sarvam): patient-language speech.
+  'voice-stt',
+  'voice-tts',
+  'voice-translate',
+  // Turns a finished consultation transcript into the structured summary.
+  'consultation-extract',
 ]);
 export type AiFeatureName = z.infer<typeof AiFeatureNameSchema>;
 
-export const AiProviderSchema = z.enum(['google', 'bedrock', 'mock']);
+export const AiProviderSchema = z.enum(['google', 'bedrock', 'sarvam', 'mock']);
 export type AiProvider = z.infer<typeof AiProviderSchema>;
 
-/** `provider:model-id`, e.g. `google:gemini-3.5-flash`. */
+/** `provider:model-id`, e.g. `google:gemini-3.5-flash` or `sarvam:bulbul:v3`. */
 export const ModelRefSchema = z
   .string()
-  .regex(/^(google|bedrock|mock):.+$/, 'expected "<provider>:<model-id>"');
+  .regex(/^(google|bedrock|sarvam|mock):.+$/, 'expected "<provider>:<model-id>"');
 export type ModelRef = z.infer<typeof ModelRefSchema>;
 
 /**
@@ -32,8 +38,8 @@ export const FeatureModelConfigSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
   maxOutputTokens: z.number().int().positive(),
   topP: z.number().min(0).max(1).optional(),
-  /** Speech features only run on providers with speech support. */
-  capabilities: z.array(z.enum(['chat', 'stt', 'tts'])).default(['chat']),
+  /** Speech/translate features only run on providers that support them. */
+  capabilities: z.array(z.enum(['chat', 'stt', 'tts', 'translate'])).default(['chat']),
 });
 export type FeatureModelConfig = z.infer<typeof FeatureModelConfigSchema>;
 

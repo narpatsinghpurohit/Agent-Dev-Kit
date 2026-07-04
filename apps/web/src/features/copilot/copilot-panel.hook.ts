@@ -2,7 +2,7 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithApprovalResponses } from 'ai';
 import { useCallback, useRef, useState } from 'react';
 import { authFetch, speechTranscribe, speechTts } from '@repo/api-client';
-import { useInvalidateTasks } from '../tasks/tasks-cache.hook';
+import { useInvalidatePatients } from '../patients/patients-cache.hook';
 
 /**
  * Copilot ViewModel: wraps the AI SDK's useChat with this app's transport
@@ -10,7 +10,7 @@ import { useInvalidateTasks } from '../tasks/tasks-cache.hook';
  * responses for mutating tools, push-to-talk transcription, and TTS.
  */
 export function useCopilotPanel() {
-  const invalidateTasks = useInvalidateTasks();
+  const invalidatePatients = useInvalidatePatients();
   const [conversationId] = useState(() => `chat_${crypto.randomUUID()}`);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -26,8 +26,8 @@ export function useCopilotPanel() {
     // Approve/deny answers round-trip to the server automatically.
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
     onFinish: () => {
-      // The copilot mutates tasks through its tools — refresh what's on screen.
-      void invalidateTasks();
+      // The copilot mutates patients through its tools — refresh what's on screen.
+      void invalidatePatients();
     },
   });
 

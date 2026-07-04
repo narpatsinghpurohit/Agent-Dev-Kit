@@ -27,10 +27,15 @@ export async function createTestApp(
   // seed the test settings store (process.env beats the .env file).
   process.env.GOOGLE_GENERATIVE_AI_API_KEY = '';
   process.env.AWS_BEARER_TOKEN_BEDROCK = '';
+  process.env.SARVAM_API_KEY = '';
   process.env.AI_MODEL_COPILOT_CHAT = '';
   process.env.AI_MODEL_SUMMARIZE = '';
   process.env.AI_MODEL_SPEECH_STT = '';
   process.env.AI_MODEL_SPEECH_TTS = '';
+  process.env.AI_MODEL_VOICE_STT = '';
+  process.env.AI_MODEL_VOICE_TTS = '';
+  process.env.AI_MODEL_VOICE_TRANSLATE = '';
+  process.env.AI_MODEL_CONSULTATION_EXTRACT = '';
   process.env.CORS_ORIGINS = 'http://localhost:5173';
   process.env.GOOGLE_OAUTH_CLIENT_ID = '';
   // No implicit admin: suites that test the bootstrap opt in via `env`.

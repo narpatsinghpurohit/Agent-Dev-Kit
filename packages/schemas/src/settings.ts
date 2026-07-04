@@ -55,7 +55,7 @@ export const SecretStateSchema = z.object({
 });
 export type SecretState = z.infer<typeof SecretStateSchema>;
 
-export const SecretName = z.enum(['googleApiKey', 'bedrockApiKey']);
+export const SecretName = z.enum(['googleApiKey', 'bedrockApiKey', 'sarvamApiKey']);
 export type SecretNameType = z.infer<typeof SecretName>;
 
 export const SettingsResponseSchema = z.object({
@@ -64,6 +64,8 @@ export const SettingsResponseSchema = z.object({
   secrets: z.object({
     googleApiKey: SecretStateSchema,
     bedrockApiKey: SecretStateSchema,
+    /** Sarvam AI — powers the consultation voice pipeline (STT/TTS/translate). */
+    sarvamApiKey: SecretStateSchema.default({ set: false, hint: null }),
   }),
 });
 export type SettingsResponse = z.infer<typeof SettingsResponseSchema>;
@@ -81,6 +83,7 @@ export const SettingsUpdateSchema = z.object({
     .object({
       googleApiKey: z.string().min(8).max(512).nullable().optional(),
       bedrockApiKey: z.string().min(8).max(512).nullable().optional(),
+      sarvamApiKey: z.string().min(8).max(512).nullable().optional(),
     })
     .optional(),
 });

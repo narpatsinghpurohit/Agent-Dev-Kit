@@ -12,6 +12,7 @@ export { ApiError, customFetch } from './http/custom-fetch';
 // Generated (committed, drift-checked — regenerate with `pnpm gen:client`)
 export * from './generated/models';
 export * from './generated/auth/auth';
-export * from './generated/tasks/tasks';
+export * from './generated/patients/patients';
+export * from './generated/consultations/consultations';
 export * from './generated/ai/ai';
 export * from './generated/settings/settings';

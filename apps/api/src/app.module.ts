@@ -10,9 +10,10 @@ import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { type Env, validateEnv } from './config/env.schema';
+import { ConsultationsModule } from './consultations/consultations.module';
 import { MailerModule } from './mailer/mailer.module';
+import { PatientsModule } from './patients/patients.module';
 import { SettingsModule } from './settings/settings.module';
-import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -28,6 +29,13 @@ import { UsersModule } from './users/users.module';
               ? { target: 'pino-pretty', options: { singleLine: true } }
               : undefined,
           redact: ['req.headers.authorization', 'req.headers.cookie'],
+          // Query strings can carry PII (?search=<patient name>) — log paths only.
+          serializers: {
+            req(req: { url?: string }) {
+              if (typeof req.url === 'string') req.url = req.url.split('?')[0] ?? req.url;
+              return req;
+            },
+          },
         },
       }),
     }),
@@ -51,7 +59,8 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     MailerModule,
     AuthModule,
-    TasksModule,
+    PatientsModule,
+    ConsultationsModule,
     AiModule,
   ],
   providers: [

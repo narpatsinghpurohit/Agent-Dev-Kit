@@ -5,8 +5,9 @@
 - `src/main.ts` + `src/app.setup.ts` — bootstrap; `app.setup.ts` is shared with e2e tests so they run the real middleware stack (helmet, cookie-parser, CORS, global prefix `api`).
 - `src/auth/` — controller, plain `AuthGuard`, `TokenService`, sessions + refresh rotation, `GoogleTokenVerifier` (the only google-auth-library import). detail: docs/guidelines/security.md
 - `src/users/` — users + `AdminBootstrapService` (creates/promotes the admin from ADMIN_EMAIL/ADMIN_PASSWORD on boot; no demo user).
-- `src/tasks/` — controller → service → repository; every repo query filters `ownerId`.
-- `src/ai/` — model registry, feature-models, copilot chat, speech, usage budget, mock provider. The ONLY place `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` may be imported (lint-enforced).
+- `src/patients/` — controller → service → repository; every repo query filters `ownerId`; cursor pagination + escaped-regex name search.
+- `src/consultations/` — bilingual interview turns (subdocs in both languages); atomic status-guarded appends in the repository; ask/answer/finish + summary endpoints.
+- `src/ai/` — model registry, feature-models, copilot chat, speech, usage budget, mock provider, plus `sarvam/sarvam.client.ts` (the ONLY file that knows Sarvam's REST surface) and `voice/voice.service.ts` (translate/speak/hear with mock short-circuits). The ONLY place `@ai-sdk/google` / `@ai-sdk/amazon-bedrock` may be imported (lint-enforced).
 - `src/settings/` — runtime settings: encrypted (AES-256-GCM) `app_settings` store, admin-only API, hot-reload subscribers. detail: docs/guidelines/configuration.md
 - `src/common/` — `@Public()` / `@CurrentUser()` decorators, `AdminGuard`, `AllExceptionsFilter`.
 - `src/config/env.schema.ts` — zod-validated env; boot fails on bad config. Copy `.env.example` → `.env`.
@@ -36,4 +37,4 @@
 - `emit-openapi` sets `OPENAPI_EMIT=1` → `MongooseModule` uses `lazyConnection`, so the artifact emits with no database running.
 - Express 5 leaves an empty JSON body `undefined` — `RefreshRequestSchema` has `.default({})` so cookie-only refresh parses. Keep that default.
 - e2e tests need the in-memory replica set from `test/global-setup.ts` (transactions require a replica set) — never point them at Docker Mongo.
-- Mongoose 9 renamed `FilterQuery` → `QueryFilter` (see `src/tasks/tasks.repository.ts`). Older snippets from training data will not typecheck.
+- Mongoose 9 renamed `FilterQuery` → `QueryFilter` (see `src/patients/patients.repository.ts`). Older snippets from training data will not typecheck.

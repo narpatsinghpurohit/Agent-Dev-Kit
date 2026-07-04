@@ -17,17 +17,19 @@ shows how the pieces fit. Deep dives: [auth.md](./auth.md), [adr/](./adr/).
 ┌───────────────▼─────────────────────────────────────────────────────┐
 │  apps/api — NestJS 11 (Express 5), global prefix /api               │
 │  helmet · throttler · global AuthGuard · ZodValidationPipe          │
-│  auth/ · tasks/ · ai/ · common/ (AllExceptionsFilter envelope)      │
+│  auth/ · patients/ · consultations/ · ai/ ·                         │
+│  common/ (AllExceptionsFilter envelope)                             │
 │                                                                     │
 │  ai/ = ModelRegistryService (google | bedrock | mock providers)     │
 │       feature-models.ts → models.languageModel('<feature>')         │
 │       copilot chat (UI-message SSE) · speech (STT/TTS) · budget     │
 └───────────────┬─────────────────────────────────────────────────────┘
-                │ Mongoose 9 (every tasks query filters ownerId)
+                │ Mongoose 9 (every patients/consultations query
+                │ filters ownerId)
 ┌───────────────▼─────────────────────────────────────────────────────┐
 │  MongoDB replica set (docker compose in dev; in-memory in tests)    │
-│  users · sessions · consumed_refresh_tokens · tasks ·               │
-│  ai_conversations · ai_messages · ai_usage                          │
+│  users · sessions · consumed_refresh_tokens · patients ·            │
+│  consultations · ai_conversations · ai_messages · ai_usage          │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -56,7 +58,7 @@ Browser                          apps/api
    │  { accessToken, user }         │ + refresh token (httpOnly cookie,
    │◄───────────────────────────────┤   Path=/api/auth/refresh, SameSite=Strict)
    │                                │
-   │  GET /api/tasks                │ throttler → AuthGuard (JWT) →
+   │  GET /api/patients             │ throttler → AuthGuard (JWT) →
    ├── Authorization: Bearer ──────►│ ZodValidationPipe → service →
    │                                │ repository (filter { ownerId }) → 200
    │  ...access token expires...    │

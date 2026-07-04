@@ -8,6 +8,6 @@ alwaysApply: false
 - AI SDK v7 idioms: `instructions` not `system`; `isStepCount` not `stepCountIs`; `onEnd` not `onFinish` (stream option); bill with `totalUsage` not `usage`.
 - Chat streams UI messages via standalone `pipeUIMessageStreamToResponse` on a raw `@Res()` — never Nest `@Sse()`.
 - NEVER import `'ai/test'` at runtime — the keyless path is the mock provider in apps/api/src/ai/providers/mock (lint-banned outside tests).
-- Mutating task tools require `toolApproval` ('user-approval'); tools call TasksService with the userId from the JWT, never from model input. detail: docs/guidelines/security.md
+- Mutating copilot tools (e.g. `createPatient`) require `toolApproval` ('user-approval'); tools call PatientsService/ConsultationsService with the userId from the JWT, never from model input. detail: docs/guidelines/security.md
 - Wrap every model call in AiUsageService two-phase budget reserve/settle.
 - UIMessages persist verbatim to ai_conversations/ai_messages — do not reshape them.

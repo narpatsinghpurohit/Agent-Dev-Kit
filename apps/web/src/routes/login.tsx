@@ -9,7 +9,7 @@ export const Route = createFileRoute('/login')({
   }),
   beforeLoad: ({ context }) => {
     if (context.auth.getState().status === 'authenticated') {
-      throw redirect({ to: '/tasks' });
+      throw redirect({ to: '/patients' });
     }
   },
   // Same queryOptions the google-signin hook uses — no button pop-in.

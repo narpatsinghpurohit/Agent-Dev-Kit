@@ -20,7 +20,7 @@
 1. Stateful screens follow the hook/view/container triple; hook files are `.ts` — JSX in a hook file is a parse error by design. detail: docs/guidelines/component-structure.md
 2. `@tanstack/react-query` and `@repo/api-client` import only in `*.hook.ts`, `src/routes/**`, `src/main.tsx`, `src/lib/**`, `src/shared/testing/**`, and tests (lint-enforced). detail: docs/guidelines/component-structure.md
 3. `react-router-dom` is banned — TanStack Router only. detail: docs/guidelines/component-structure.md
-4. Route loaders prefetch with the generated `get*QueryOptions` the hook also uses — one cache entry, no double fetch (see `src/routes/_authenticated/tasks/index.tsx`). detail: docs/guidelines/data-and-state.md
+4. Route loaders prefetch with the generated `get*QueryOptions` the hook also uses — one cache entry, no double fetch (see `src/routes/_authenticated/patients/index.tsx`). detail: docs/guidelines/data-and-state.md
 5. Never store tokens in localStorage; auth flows go through `src/lib/auth.ts` and `@repo/api-client`'s single-flight refresh. detail: docs/guidelines/security.md
 6. Web tests mock the network with MSW handlers from `@repo/api-client/mocks`, never hand-written fetch mocks. detail: docs/guidelines/testing.md
 7. Styling uses the Tailwind v4 tokens from `src/styles.css` `@theme` — no ad-hoc hex colors in components. detail: docs/guidelines/naming-and-style.md

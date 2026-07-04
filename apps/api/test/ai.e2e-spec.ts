@@ -5,7 +5,7 @@ import { createTestApp } from './create-test-app';
 
 /**
  * Copilot e2e on the keyless mock provider: SSE protocol, tool-approval
- * round-trip that really creates a task, persistence, usage rows.
+ * round-trip that really registers a patient, persistence, usage rows.
  */
 describe('ai copilot (e2e, mock provider)', () => {
   let app: INestApplication;
@@ -93,12 +93,16 @@ describe('ai copilot (e2e, mock provider)', () => {
     expect(messages.body[1].role).toBe('assistant');
   });
 
-  it('runs the full tool-approval loop: request → approve → task exists', async () => {
-    // 1) Ask the copilot to create a task — the mutating tool needs approval.
+  it('runs the full tool-approval loop: request → approve → patient exists', async () => {
+    // 1) Ask the copilot to register a patient — the mutating tool needs approval.
     const first = await request(server)
       .post('/api/ai/chat')
       .set('Authorization', `Bearer ${token}`)
-      .send(chatBody('chat-tool', [userMessage('m1', 'Create a task called E2E Copilot Task')]))
+      .send(
+        chatBody('chat-tool', [
+          userMessage('m1', 'Register a patient called E2E Copilot Patient, age 33'),
+        ]),
+      )
       .expect(200);
 
     const approvalRequest = sseChunks(first.text).find(
@@ -106,9 +110,9 @@ describe('ai copilot (e2e, mock provider)', () => {
     ) as { approvalId: string } | undefined;
     expect(approvalRequest).toBeDefined();
 
-    // No task yet — execution is paused on approval.
+    // No patient yet — execution is paused on approval.
     const before = await request(server)
-      .get('/api/tasks')
+      .get('/api/patients')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(before.body.items).toHaveLength(0);
@@ -143,13 +147,14 @@ describe('ai copilot (e2e, mock provider)', () => {
       .join('');
     expect(confirmation).toContain('Done');
 
-    // 3) The task genuinely exists — same service the REST API uses.
+    // 3) The patient genuinely exists — same service the REST API uses.
     const after = await request(server)
-      .get('/api/tasks')
+      .get('/api/patients')
       .set('Authorization', `Bearer ${token}`)
       .expect(200);
     expect(after.body.items).toHaveLength(1);
-    expect(after.body.items[0].title).toBe('E2E Copilot Task');
+    expect(after.body.items[0].name).toBe('E2E Copilot Patient');
+    expect(after.body.items[0].age).toBe(33);
   });
 
   it('records usage rows for chat calls', async () => {

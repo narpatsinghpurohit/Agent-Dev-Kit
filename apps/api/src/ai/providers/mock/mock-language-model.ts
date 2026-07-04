@@ -12,11 +12,11 @@ import { simulateReadableStream } from 'ai';
  * test-only and crashes at runtime). A tiny rule-based "model" that makes
  * the copilot demo work end-to-end with zero API keys:
  *
- * - "create a task called X" → emits a createTask tool call (exercising the
- *   real tool-approval + execution loop)
- * - "list/show my tasks"     → emits a listTasks tool call
- * - after a tool result      → confirms in text
- * - anything else            → echoes
+ * - "register a patient called X" → emits a createPatient tool call
+ *   (exercising the real tool-approval + execution loop)
+ * - "list/show my patients"       → emits a listPatients tool call
+ * - after a tool result           → confirms in text
+ * - anything else                 → echoes
  */
 export class MockLanguageModel implements LanguageModelV4 {
   readonly specificationVersion = 'v4' as const;
@@ -108,20 +108,33 @@ export class MockLanguageModel implements LanguageModelV4 {
     const text = lastUserText(options);
     const toolNames = (options.tools ?? []).map((t) => t.name);
 
-    if (toolNames.includes('createTask') && /\b(create|add|make|new)\b.*\btask\b/i.test(text)) {
-      const title =
+    if (
+      toolNames.includes('createPatient') &&
+      /\b(register|create|add|new)\b.*\bpatient\b/i.test(text)
+    ) {
+      const name =
         text.match(/["“]([^"”]+)["”]/)?.[1] ??
-        text.match(/\b(?:called|named|titled)\s+(.+?)[.!?]?$/i)?.[1] ??
-        'Task from the copilot';
-      return { toolCall: { toolName: 'createTask', input: { title: title.trim() } } };
+        text.match(/\b(?:called|named)\s+(.+?)(?:,|\.|!|\?|$)/i)?.[1] ??
+        'New Patient';
+      const age = Number(text.match(/\bage\s*(\d{1,3})\b/i)?.[1] ?? 30);
+      return {
+        toolCall: {
+          toolName: 'createPatient',
+          // The mock cannot infer everything — sensible demo defaults.
+          input: { name: name.trim(), age, sex: 'other', language: 'hi-IN' },
+        },
+      };
     }
 
-    if (toolNames.includes('listTasks') && /\b(list|show|what|see)\b.*\btasks?\b/i.test(text)) {
-      return { toolCall: { toolName: 'listTasks', input: {} } };
+    if (
+      toolNames.includes('listPatients') &&
+      /\b(list|show|what|see|find)\b.*\bpatients?\b/i.test(text)
+    ) {
+      return { toolCall: { toolName: 'listPatients', input: {} } };
     }
 
     return {
-      text: `You said: "${text}". I'm the keyless mock model — ask me to create or list tasks to see real tool calls, or configure an AI provider key for real answers.`,
+      text: `You said: "${text}". I'm the keyless mock model — ask me to register or list patients to see real tool calls, or configure an AI provider key for real answers.`,
     };
   }
 }

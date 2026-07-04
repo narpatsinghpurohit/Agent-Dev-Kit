@@ -26,6 +26,7 @@ import { decryptSecret, encryptSecret } from './settings-crypto';
 const SECRET_KEYS: Record<SecretNameType, string> = {
   googleApiKey: 'secret:googleApiKey',
   bedrockApiKey: 'secret:bedrockApiKey',
+  sarvamApiKey: 'secret:sarvamApiKey',
 };
 
 type ChangeListener = () => void | Promise<void>;
@@ -50,6 +51,7 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
   private secrets: Record<SecretNameType, string | null> = {
     googleApiKey: null,
     bedrockApiKey: null,
+    sarvamApiKey: null,
   };
 
   constructor(
@@ -114,6 +116,7 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
       secrets: {
         googleApiKey: mask(this.secrets.googleApiKey),
         bedrockApiKey: mask(this.secrets.bedrockApiKey),
+        sarvamApiKey: mask(this.secrets.sarvamApiKey),
       },
     };
   }
@@ -292,6 +295,7 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
   private envSecret(name: SecretNameType): string | null {
     // `|| null` also normalizes empty strings (unset-but-present env vars).
     if (name === 'googleApiKey') return this.get('GOOGLE_GENERATIVE_AI_API_KEY') || null;
+    if (name === 'sarvamApiKey') return this.get('SARVAM_API_KEY') || null;
     return this.get('AWS_BEARER_TOKEN_BEDROCK') || null;
   }
 
@@ -299,6 +303,7 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
     return {
       googleApiKey: this.envSecret('googleApiKey'),
       bedrockApiKey: this.envSecret('bedrockApiKey'),
+      sarvamApiKey: this.envSecret('sarvamApiKey'),
     };
   }
 }

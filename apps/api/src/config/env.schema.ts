@@ -62,12 +62,18 @@ export const EnvSchema = z.object({
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   AWS_BEARER_TOKEN_BEDROCK: z.string().optional(),
   AWS_REGION: z.string().default('us-east-1'),
+  // Sarvam AI (consultation voice pipeline) — runtime-setting SEED.
+  SARVAM_API_KEY: z.string().optional(),
   AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().positive().default(200_000),
   // Per-feature model overrides ("provider:model-id") — see src/ai/feature-models.ts.
   AI_MODEL_COPILOT_CHAT: z.string().optional(),
   AI_MODEL_SUMMARIZE: z.string().optional(),
   AI_MODEL_SPEECH_STT: z.string().optional(),
   AI_MODEL_SPEECH_TTS: z.string().optional(),
+  AI_MODEL_VOICE_STT: z.string().optional(),
+  AI_MODEL_VOICE_TTS: z.string().optional(),
+  AI_MODEL_VOICE_TRANSLATE: z.string().optional(),
+  AI_MODEL_CONSULTATION_EXTRACT: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -9,7 +9,7 @@ describe('ToolPartCard', () => {
     render(
       <ToolPartCard
         part={{
-          type: 'tool-createTask',
+          type: 'tool-createPatient',
           state: 'approval-requested',
           input: { title: 'Ship it' },
           approval: { id: 'appr_1' },
@@ -18,7 +18,7 @@ describe('ToolPartCard', () => {
       />,
     );
 
-    expect(screen.getByText('Create task')).toBeInTheDocument();
+    expect(screen.getByText('Register patient')).toBeInTheDocument();
     expect(screen.getByText('needs approval')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Approve' }));
@@ -31,7 +31,7 @@ describe('ToolPartCard', () => {
   it('shows completed state without approval UI', () => {
     render(
       <ToolPartCard
-        part={{ type: 'tool-listTasks', state: 'output-available', input: {}, output: {} }}
+        part={{ type: 'tool-listPatients', state: 'output-available', input: {}, output: {} }}
         onApproval={vi.fn()}
       />,
     );

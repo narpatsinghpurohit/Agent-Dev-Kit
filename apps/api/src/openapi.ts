@@ -5,7 +5,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('Agentic Dev Kit API')
-    .setDescription('Auth, tasks, and AI (copilot/speech) endpoints.')
+    .setDescription('Auth, patients, consultations, and AI (copilot/voice) endpoints.')
     .setVersion('0.1.0')
     .addBearerAuth()
     .build();

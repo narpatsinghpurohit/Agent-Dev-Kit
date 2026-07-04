@@ -78,36 +78,36 @@ apps/web ──▶ @repo/schemas ◀── apps/api
   "exports": { ".": "./src/index.ts", "./mocks": "./src/mocks.ts" }
   ```
 
-## Canonical example in this repo: the Tasks vertical slice
+## Canonical example in this repo: the Patients vertical slice
 
 Trace one feature end-to-end; every new domain feature copies this shape.
 
-1. **Contract** — `packages/schemas/src/tasks.ts`: `TaskSchema`,
-   `TaskCreateSchema`, `TaskUpdateSchema`, `TaskListQuerySchema`,
-   `TaskListResponseSchema` (re-exported from `src/index.ts`).
-2. **API module** — `apps/api/src/tasks/`: `task.schema.ts` (Mongoose),
-   `tasks.repository.ts`, `tasks.service.ts`, `tasks.controller.ts`,
-   `tasks.module.ts`, `tasks.service.spec.ts`, and `dto/tasks.dto.ts`, which is
-   nothing but the shared contract wrapped for Nest:
+1. **Contract** — `packages/schemas/src/medical.ts`: `PatientSchema`,
+   `PatientCreateSchema`, `PatientUpdateSchema`, `PatientListQuerySchema`,
+   `PatientListResponseSchema` (re-exported from `src/index.ts`).
+2. **API module** — `apps/api/src/patients/`: `patient.schema.ts` (Mongoose),
+   `patients.repository.ts`, `patients.service.ts`, `patients.controller.ts`,
+   `patients.module.ts`, and `dto/patients.dto.ts`, which is nothing but the
+   shared contract wrapped for Nest:
 
    ```ts
-   export class TaskDto extends createZodDto(TaskSchema) {}
-   export class TaskCreateDto extends createZodDto(TaskCreateSchema) {}
-   export class TaskUpdateDto extends createZodDto(TaskUpdateSchema) {}
-   export class TaskListQueryDto extends createZodDto(TaskListQuerySchema) {}
-   export class TaskListResponseDto extends createZodDto(TaskListResponseSchema) {}
+   export class PatientDto extends createZodDto(PatientSchema) {}
+   export class PatientCreateDto extends createZodDto(PatientCreateSchema) {}
+   export class PatientUpdateDto extends createZodDto(PatientUpdateSchema) {}
+   export class PatientListQueryDto extends createZodDto(PatientListQuerySchema) {}
+   export class PatientListResponseDto extends createZodDto(PatientListResponseSchema) {}
    ```
 
 3. **Wire contract** — `apps/api/openapi.json`, emitted from those decorators
    and DTOs by `dist/scripts/emit-openapi.js`.
-4. **Generated client** — `packages/api-client/src/generated/tasks/tasks.ts`
-   (`useTasksListInfinite`, `getTasksListQueryOptions`, `useTasksCreate`,
-   `useTasksUpdate`, `useTasksRemove`, …) plus `tasks.msw.ts` mock handlers and
-   `tasks.faker.ts` fixtures.
-5. **Web routes** — `apps/web/src/routes/_authenticated/tasks/{index,new,$taskId}.tsx`:
+4. **Generated client** — `packages/api-client/src/generated/patients/patients.ts`
+   (`usePatientsListInfinite`, `getPatientsListInfiniteQueryOptions`,
+   `usePatientsCreate`, `usePatientsUpdate`, `usePatientsRemove`, …) plus
+   `patients.msw.ts` mock handlers and `patients.faker.ts` fixtures.
+5. **Web routes** — `apps/web/src/routes/_authenticated/patients/{index,new,$patientId}.tsx`:
    pure config that prefetches through the same generated `queryOptions`
    (standard: [component-structure.md](./component-structure.md)).
-6. **Web feature** — `apps/web/src/features/tasks/` with its hook/view/container
+6. **Web feature** — `apps/web/src/features/patients/` with its hook/view/container
    triples and a pages-only barrel (anatomy: [component-structure.md](./component-structure.md)).
 
 ## Where to look

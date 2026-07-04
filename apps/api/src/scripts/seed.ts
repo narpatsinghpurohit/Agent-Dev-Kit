@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
+import { Types } from 'mongoose';
 
 /**
- * Idempotent demo data: a handful of tasks for the bootstrap admin.
- * The admin account itself comes from ADMIN_EMAIL/ADMIN_PASSWORD in
- * apps/api/.env — AdminBootstrapService creates it during context init,
- * so by the time this runs the account exists.
+ * Idempotent demo data: a few patients (different languages) and one
+ * completed consultation for the bootstrap admin. The admin account itself
+ * comes from ADMIN_EMAIL/ADMIN_PASSWORD in apps/api/.env —
+ * AdminBootstrapService creates it during context init.
  * Usage: pnpm db:seed  (requires Mongo from `pnpm db:up`)
  */
 async function main(): Promise<void> {
@@ -13,11 +14,13 @@ async function main(): Promise<void> {
 
   const { ConfigService } = await import('@nestjs/config');
   const { UsersService } = await import('../users/users.service.js');
-  const { TasksService } = await import('../tasks/tasks.service.js');
+  const { PatientsService } = await import('../patients/patients.service.js');
+  const { ConsultationsRepository } = await import('../consultations/consultations.repository.js');
 
   const configService = app.get(ConfigService);
   const usersService = app.get(UsersService);
-  const tasksService = app.get(TasksService);
+  const patientsService = app.get(PatientsService);
+  const consultationsRepository = app.get(ConsultationsRepository);
 
   const email = configService.get<string | undefined>('ADMIN_EMAIL');
   if (!email) {
@@ -40,32 +43,93 @@ async function main(): Promise<void> {
   console.log(`Admin account: ${email} (from ADMIN_EMAIL)`);
 
   const ownerId = user._id.toString();
-  const existing = await tasksService.list(ownerId, { limit: 1 });
-  if (existing.items.length === 0) {
-    const inDays = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
-    const seeds = [
-      { title: 'Read the architecture guidelines', description: 'docs/guidelines/architecture.md' },
-      { title: 'Run the copilot demo', description: 'Ask it to create a task for you' },
-      { title: 'Wire up a real mailer driver', dueDate: inDays(7) },
-      { title: 'Swap the mock AI provider for Gemini', dueDate: inDays(3) },
-      { title: 'Ship something', dueDate: inDays(14) },
-      { title: 'Review the view/hook file standard' },
-      { title: 'Explore the generated API client' },
-      { title: 'Set up remote caching for turbo' },
-    ];
-    for (const seed of seeds) {
-      await tasksService.create(ownerId, seed);
-    }
-    // Vary statuses for a lively demo board.
-    const page = await tasksService.list(ownerId, { limit: 20 });
-    const [first, second, third] = page.items;
-    if (first) await tasksService.update(ownerId, first.id, { status: 'done' });
-    if (second) await tasksService.update(ownerId, second.id, { status: 'in_progress' });
-    if (third) await tasksService.update(ownerId, third.id, { status: 'in_progress' });
-    console.log(`Seeded ${seeds.length} tasks`);
-  } else {
-    console.log('Tasks already seeded');
+  const existing = await patientsService.list(ownerId, { limit: 1 });
+  if (existing.items.length > 0) {
+    console.log('Patients already seeded');
+    await app.close();
+    return;
   }
+
+  const asha = await patientsService.create(ownerId, {
+    name: 'Asha Devi',
+    age: 54,
+    sex: 'female',
+    language: 'hi-IN',
+    phone: '+91 98765 43210',
+    notes: 'Prefers morning visits.',
+  });
+  await patientsService.create(ownerId, {
+    name: 'Murugan Selvam',
+    age: 41,
+    sex: 'male',
+    language: 'ta-IN',
+  });
+  await patientsService.create(ownerId, {
+    name: 'Rohit Sharma',
+    age: 29,
+    sex: 'male',
+    language: 'en-IN',
+  });
+  console.log('Seeded 3 patients (Hindi, Tamil, English)');
+
+  // One completed consultation with a finished record, straight through the
+  // repository — the seed must not spend AI tokens on extraction.
+  const owner = new Types.ObjectId(ownerId);
+  const consultation = await consultationsRepository.create(owner, {
+    patientId: new Types.ObjectId(asha.id),
+    doctorLanguage: 'en-IN',
+    patientLanguage: 'hi-IN',
+  });
+  const at = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000);
+  await consultationsRepository.appendTurnForOwner(owner, consultation._id.toString(), {
+    id: 'turn_seed_1',
+    speaker: 'doctor',
+    sourceLanguage: 'en-IN',
+    targetLanguage: 'hi-IN',
+    sourceText: 'What brings you in today?',
+    translatedText: 'आज आप किस तकलीफ़ से आई हैं?',
+    at: at(32),
+  });
+  await consultationsRepository.appendTurnForOwner(owner, consultation._id.toString(), {
+    id: 'turn_seed_2',
+    speaker: 'patient',
+    sourceLanguage: 'hi-IN',
+    targetLanguage: 'en-IN',
+    sourceText: 'दो दिन से बुखार है और सिर में दर्द रहता है।',
+    translatedText: 'I have had a fever for two days and a constant headache.',
+    at: at(31),
+  });
+  await consultationsRepository.appendTurnForOwner(owner, consultation._id.toString(), {
+    id: 'turn_seed_3',
+    speaker: 'doctor',
+    sourceLanguage: 'en-IN',
+    targetLanguage: 'hi-IN',
+    sourceText: 'Are you taking any medicines at the moment?',
+    translatedText: 'क्या आप अभी कोई दवा ले रही हैं?',
+    at: at(30),
+  });
+  await consultationsRepository.appendTurnForOwner(owner, consultation._id.toString(), {
+    id: 'turn_seed_4',
+    speaker: 'patient',
+    sourceLanguage: 'hi-IN',
+    targetLanguage: 'en-IN',
+    sourceText: 'सिर्फ़ पैरासिटामोल, बुखार के लिए।',
+    translatedText: 'Only paracetamol, for the fever.',
+    at: at(29),
+  });
+  await consultationsRepository.completeForOwner(owner, consultation._id.toString(), {
+    chiefComplaint: 'Fever for two days with constant headache',
+    symptoms: [
+      { name: 'fever', duration: '2 days', severity: 'moderate' },
+      { name: 'headache', duration: '2 days' },
+    ],
+    history: '',
+    medications: ['paracetamol'],
+    allergies: [],
+    redFlags: [],
+    additionalNotes: 'Seeded example consultation.',
+  });
+  console.log('Seeded 1 completed consultation for Asha Devi');
 
   await app.close();
 }

@@ -14,14 +14,13 @@ docs/guidelines/testing.md.
 
    | Code under test                | Layer                          | Canonical example to read                                                      |
    | ------------------------------ | ------------------------------ | ------------------------------------------------------------------------------ |
-   | zod schemas                    | schemas unit                   | `packages/schemas/src/tasks.test.ts`                                           |
-   | Nest service/repo logic        | api unit (`src/**/*.spec.ts`)  | `apps/api/src/tasks/tasks.service.spec.ts`                                     |
+   | zod schemas                    | schemas unit                   | `packages/schemas/src/medical.test.ts`                                         |
+   | Nest service/repo logic        | api unit (`src/**/*.spec.ts`)  | `apps/api/src/auth/auth.service.spec.ts`                                       |
    | pure api helpers               | api unit                       | `apps/api/src/ai/speech/wav.spec.ts`, `apps/api/src/ai/feature-models.spec.ts` |
-   | HTTP behavior, auth, ownership | api e2e (`test/*.e2e-spec.ts`) | `apps/api/test/tasks.e2e-spec.ts`, `apps/api/test/auth.e2e-spec.ts`            |
+   | HTTP behavior, auth, ownership | api e2e (`test/*.e2e-spec.ts`) | `apps/api/test/patients.e2e-spec.ts`, `apps/api/test/auth.e2e-spec.ts`         |
    | AI endpoints (keyless mock)    | api e2e                        | `apps/api/test/ai.e2e-spec.ts`, `ai-budget.e2e-spec.ts`                        |
-   | web ViewModel hook             | web unit                       | `apps/web/src/features/tasks/task-list/task-list.hook.test.ts`                 |
-   | web view component             | web unit                       | `apps/web/src/features/tasks/task-list/task-list.view.test.tsx`                |
-   | pure web helpers               | web unit                       | `apps/web/src/features/tasks/lib/format.test.ts`                               |
+   | web ViewModel hook             | web unit                       | `apps/web/src/features/patients/patient-list/patient-list.hook.test.ts`        |
+   | web view component             | web unit                       | `apps/web/src/features/shell/app-shell.view.test.tsx`                          |
    | full user journey              | web e2e (Playwright)           | `apps/web/e2e/app.spec.ts`                                                     |
 
 2. **Read the example spec end to end** before writing yours — naming,
@@ -33,9 +32,9 @@ docs/guidelines/testing.md.
    - API e2e boots the real app on an in-memory Mongo replica set via
      `apps/api/test/create-test-app.ts`; throttling is skipped in
      NODE_ENV=test. For owned resources, always include the two-user
-     cross-access 404 assertion (see `tasks.e2e-spec.ts`).
+     cross-access 404 assertion (see `patients.e2e-spec.ts`).
    - Web unit mocks the API ONLY with orval-generated MSW handlers from
-     `@repo/api-client/mocks` (e.g. `getTasksListMockHandler(fixture)`) with
+     `@repo/api-client/mocks` (e.g. `getPatientsListMockHandler(fixture)`) with
      explicit fixtures — never hand-written fetch mocks, never unseeded
      random data. `renderWithProviders`/`renderHookWithProviders` from
      `apps/web/src/shared/testing/test-utils.tsx` are ASYNC — `await` them.

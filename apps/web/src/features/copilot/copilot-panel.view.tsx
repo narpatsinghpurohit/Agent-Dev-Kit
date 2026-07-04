@@ -23,13 +23,15 @@ export function CopilotPanelView({
     <div className="flex min-h-0 flex-1 flex-col" data-testid="copilot-panel">
       <div className="border-b border-edge px-4 py-3">
         <h2 className="text-sm font-semibold">Copilot</h2>
-        <p className="text-xs text-ink-dim">Ask it to create, list, or update your tasks.</p>
+        <p className="text-xs text-ink-dim">
+          Ask it to register patients or look up their history.
+        </p>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 ? (
           <p className="text-sm text-ink-dim">
-            Try: <em>“Create a task called Ship the starter kit”</em>
+            Try: <em>“Register a patient called Asha Devi, age 54”</em>
           </p>
         ) : null}
 

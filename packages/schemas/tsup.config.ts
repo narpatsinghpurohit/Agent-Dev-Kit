@@ -8,7 +8,7 @@ export default defineConfig((options) => ({
     'src/common.ts',
     'src/auth.ts',
     'src/user.ts',
-    'src/tasks.ts',
+    'src/medical.ts',
     'src/ai.ts',
     'src/settings.ts',
   ],

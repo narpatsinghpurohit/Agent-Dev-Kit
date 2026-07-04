@@ -44,6 +44,31 @@ const DEFAULT_FEATURE_MODELS: Record<AiFeatureName, FeatureModelConfig> = {
     maxOutputTokens: 16,
     capabilities: ['tts'],
   },
+  // Consultation voice pipeline — Sarvam's Indic speech stack, called via
+  // REST in src/ai/sarvam/ (not the AI SDK registry). The entries still
+  // live here so model ids stay env-overridable and admin-visible.
+  'voice-stt': {
+    model: 'sarvam:saaras:v3',
+    maxOutputTokens: 2048,
+    capabilities: ['stt'],
+  },
+  'voice-tts': {
+    model: 'sarvam:bulbul:v3',
+    maxOutputTokens: 16,
+    capabilities: ['tts'],
+  },
+  'voice-translate': {
+    model: 'sarvam:sarvam-translate:v1',
+    maxOutputTokens: 2048,
+    capabilities: ['translate'],
+  },
+  // Turns the finished interview transcript into the structured summary.
+  'consultation-extract': {
+    model: 'google:gemini-2.5-flash-lite',
+    temperature: 0.2,
+    maxOutputTokens: 2048,
+    capabilities: ['chat'],
+  },
 };
 
 /** Single source for the copilot's tunable defaults (settings seeds reuse it). */
@@ -59,6 +84,10 @@ const ENV_OVERRIDE_KEYS: Record<AiFeatureName, keyof Env> = {
   summarize: 'AI_MODEL_SUMMARIZE',
   'speech-stt': 'AI_MODEL_SPEECH_STT',
   'speech-tts': 'AI_MODEL_SPEECH_TTS',
+  'voice-stt': 'AI_MODEL_VOICE_STT',
+  'voice-tts': 'AI_MODEL_VOICE_TTS',
+  'voice-translate': 'AI_MODEL_VOICE_TRANSLATE',
+  'consultation-extract': 'AI_MODEL_CONSULTATION_EXTRACT',
 };
 
 export type ResolvedFeatureModels = Record<AiFeatureName, FeatureModelConfig>;
@@ -102,9 +131,31 @@ export function resolveFeatureModels(input: {
     >) {
       const provider = config.model.split(':')[0];
       const speech = config.capabilities.some((c) => c === 'stt' || c === 'tts');
-      if (speech && provider !== 'google' && provider !== 'mock') {
+      if (speech && provider !== 'google' && provider !== 'sarvam' && provider !== 'mock') {
         throw new Error(
-          `AI config error: feature "${feature}" needs speech capability, which only the google provider offers (got "${config.model}").`,
+          `AI config error: feature "${feature}" needs speech capability, which only the google and sarvam providers offer (got "${config.model}").`,
+        );
+      }
+      // The voice pipeline only speaks Sarvam's REST surface — a google:
+      // model here would boot fine and then fail on the first turn.
+      if (feature.startsWith('voice-') && provider !== 'sarvam' && provider !== 'mock') {
+        throw new Error(
+          `AI config error: feature "${feature}" runs on the Sarvam voice pipeline — only sarvam:* models are valid (got "${config.model}").`,
+        );
+      }
+      if (
+        config.capabilities.includes('translate') &&
+        provider !== 'sarvam' &&
+        provider !== 'mock'
+      ) {
+        throw new Error(
+          `AI config error: feature "${feature}" needs the translate capability, which only the sarvam provider offers (got "${config.model}").`,
+        );
+      }
+      // The registry can only alias AI SDK providers; sarvam is REST-only.
+      if (provider === 'sarvam' && config.capabilities.includes('chat')) {
+        throw new Error(
+          `AI config error: feature "${feature}" is a chat feature — the sarvam provider only serves voice features (got "${config.model}").`,
         );
       }
     }

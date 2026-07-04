@@ -61,6 +61,7 @@ export function useSettingsPage() {
       googleClientId: settings.general.googleClientId ?? '',
       googleApiKey: '',
       bedrockApiKey: '',
+      sarvamApiKey: '',
     },
     onSubmit: async ({ value, formApi }) => {
       const candidate = {
@@ -88,6 +89,7 @@ export function useSettingsPage() {
         secrets: {
           ...(value.googleApiKey.trim() ? { googleApiKey: value.googleApiKey.trim() } : {}),
           ...(value.bedrockApiKey.trim() ? { bedrockApiKey: value.bedrockApiKey.trim() } : {}),
+          ...(value.sarvamApiKey.trim() ? { sarvamApiKey: value.sarvamApiKey.trim() } : {}),
         },
       };
       const parsed = SettingsUpdateSchema.safeParse(candidate);
@@ -103,6 +105,7 @@ export function useSettingsPage() {
       if (!ok) return; // keep typed-but-unsaved secrets in the inputs
       formApi.setFieldValue('googleApiKey', '');
       formApi.setFieldValue('bedrockApiKey', '');
+      formApi.setFieldValue('sarvamApiKey', '');
       await refetch();
     },
   });

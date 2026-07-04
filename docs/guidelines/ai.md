@@ -39,8 +39,25 @@ knows which provider serves it. The whole stack runs keyless by default
      after — and `reservation.settle(null, ...)` on error so the reservation is refunded.
   5. Settling with actuals records the `ai_usage` row automatically.
 
-  Config is validated at boot: bad refs, missing keys, or a non-google speech provider refuse
-  to start (`resolveFeatureModels`).
+  Config is validated at boot: bad refs, missing keys, or an impossible provider/capability
+  pairing refuse to start (`resolveFeatureModels`).
+
+- **The Sarvam voice pipeline is REST, not the registry.** The consultation features
+  (`voice-stt`/`voice-tts`/`voice-translate`) still declare their models in
+  `feature-models.ts` (env-overridable, admin-visible, mock-degradable like everything else),
+  but Sarvam has no AI SDK provider here — calls go through `src/ai/sarvam/sarvam.client.ts`
+  (the ONLY file that knows Sarvam's HTTP surface) and `src/ai/voice/voice.service.ts`
+  (mock short-circuits + budget tracking). Sarvam specifics the client already encodes —
+  do not re-learn them elsewhere: auth header is `api-subscription-key`, auth failures are
+  HTTP **403** (not 401), retry only 429/500/503, and a 429 `insufficient_quota_error` means
+  credits are exhausted (retrying is pointless). The key is the runtime secret
+  `secrets.sarvamApiKey` (env seed `SARVAM_API_KEY`); with no key, voice features degrade to
+  the mock (`[<lang>]`-prefixed translations, silence WAV, canned transcript) so the whole
+  interview flow stays keyless-runnable and e2e-testable.
+- **Language pairs are type-bound to the Sarvam intersection.** `LanguageCodeSchema` in
+  `packages/schemas/src/medical.ts` lists exactly the languages ALL THREE voice APIs support
+  (TTS is the limiter, 11 codes). Never widen it from one API's docs alone, and never
+  "normalize" Odia — it is `od-IN` in every Sarvam API, not the ISO `or-IN`.
 
 - **Use the v7 idioms** — stale training data gets all of these wrong:
 
@@ -66,13 +83,13 @@ knows which provider serves it. The whole stack runs keyless by default
   validated with `validateUIMessages` (tool set in scope), and saved back as UIMessages in
   `ai_conversations`/`ai_messages` (`conversations/conversations.repository.ts`).
 - **Treat prompts as versioned code.** `apps/api/src/ai/prompts/copilot.prompt.ts` exports
-  `COPILOT_PROMPT_VERSION = 'copilot@1'`; it is recorded on every `ai_usage` row (settle meta
+  `COPILOT_PROMPT_VERSION = 'copilot@2'`; it is recorded on every `ai_usage` row (settle meta
   `promptVersion`) so cost/behavior shifts are attributable to prompt revisions. Bump it on
   meaningful changes. User content goes in `messages`, never concatenated into `instructions`.
 - **Keep the mock provider working.** `providers/mock/mock-language-model.ts` is a rule-based
-  `LanguageModelV4` registered as the `mock` provider: "create a task called X" emits a real
-  `createTask` tool call (exercising the genuine approval loop), "list my tasks" emits
-  `listTasks`, everything else echoes. In `AI_PROVIDER_MODE=mock` every feature resolves to
+  `LanguageModelV4` registered as the `mock` provider: "register a patient called X" emits a real
+  `createPatient` tool call (exercising the genuine approval loop), "list my patients" emits
+  `listPatients`, everything else echoes. In `AI_PROVIDER_MODE=mock` every feature resolves to
   `mock:<feature>`, so demos, CI, and e2e run with zero API keys.
 - **Respect the speech constraints** (`speech/speech.service.ts`, `speech.controller.ts`):
   google-only (the AI SDK has no Bedrock speech; boot validation enforces it). STT is Gemini
@@ -115,9 +132,8 @@ const result = streamText({
   tools,
   stopWhen: isStepCount(8),
   toolApproval: {
-    createTask: 'user-approval',
-    updateTask: 'user-approval',
-    deleteTask: 'user-approval',
+    createPatient: 'user-approval',
+    // listPatients / getPatientHistory are read-only — no approval friction.
   },
   abortSignal: abortController.signal,
   ...

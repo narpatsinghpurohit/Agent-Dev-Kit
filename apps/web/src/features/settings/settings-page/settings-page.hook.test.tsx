@@ -32,6 +32,7 @@ const fixture = {
   secrets: {
     googleApiKey: { set: true, hint: '…1234' },
     bedrockApiKey: { set: false, hint: null },
+    sarvamApiKey: { set: false, hint: null },
   },
 };
 

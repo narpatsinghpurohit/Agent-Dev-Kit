@@ -15,16 +15,16 @@ export function AppShellView({
     <div className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b border-edge bg-panel px-6 py-3">
         <div className="flex items-center gap-6">
-          <Link to="/tasks" className="text-lg font-semibold tracking-tight">
-            Agentic<span className="text-accent-soft"> Dev Kit</span>
+          <Link to="/patients" className="text-lg font-semibold tracking-tight">
+            Sahayak<span className="text-accent-soft"> Clinic</span>
           </Link>
           <nav className="flex gap-4 text-sm text-ink-dim">
             <Link
-              to="/tasks"
+              to="/patients"
               className="hover:text-ink"
               activeProps={{ className: 'text-ink font-medium' }}
             >
-              Tasks
+              Patients
             </Link>
             {isAdmin ? (
               <Link

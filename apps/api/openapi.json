@@ -376,9 +376,9 @@
         ]
       }
     },
-    "/api/tasks": {
+    "/api/patients": {
       "get": {
-        "operationId": "tasksList",
+        "operationId": "patientsList",
         "parameters": [
           {
             "name": "cursor",
@@ -400,16 +400,12 @@
             }
           },
           {
-            "name": "status",
+            "name": "search",
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "todo",
-                "in_progress",
-                "done"
-              ]
+              "maxLength": 120,
+              "type": "string"
             }
           }
         ],
@@ -419,7 +415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskListResponseDto_Output"
+                  "$ref": "#/components/schemas/PatientListResponseDto_Output"
                 }
               }
             }
@@ -431,18 +427,18 @@
           }
         ],
         "tags": [
-          "tasks"
+          "patients"
         ]
       },
       "post": {
-        "operationId": "tasksCreate",
+        "operationId": "patientsCreate",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskCreateDto"
+                "$ref": "#/components/schemas/PatientCreateDto"
               }
             }
           }
@@ -453,7 +449,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskDto_Output"
+                  "$ref": "#/components/schemas/PatientDto_Output"
                 }
               }
             }
@@ -465,13 +461,13 @@
           }
         ],
         "tags": [
-          "tasks"
+          "patients"
         ]
       }
     },
-    "/api/tasks/{id}": {
+    "/api/patients/{id}": {
       "get": {
-        "operationId": "tasksGet",
+        "operationId": "patientsGet",
         "parameters": [
           {
             "name": "id",
@@ -488,7 +484,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskDto_Output"
+                  "$ref": "#/components/schemas/PatientDto_Output"
                 }
               }
             }
@@ -500,11 +496,11 @@
           }
         ],
         "tags": [
-          "tasks"
+          "patients"
         ]
       },
       "patch": {
-        "operationId": "tasksUpdate",
+        "operationId": "patientsUpdate",
         "parameters": [
           {
             "name": "id",
@@ -520,7 +516,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskUpdateDto"
+                "$ref": "#/components/schemas/PatientUpdateDto"
               }
             }
           }
@@ -531,7 +527,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TaskDto_Output"
+                  "$ref": "#/components/schemas/PatientDto_Output"
                 }
               }
             }
@@ -543,11 +539,11 @@
           }
         ],
         "tags": [
-          "tasks"
+          "patients"
         ]
       },
       "delete": {
-        "operationId": "tasksRemove",
+        "operationId": "patientsRemove",
         "parameters": [
           {
             "name": "id",
@@ -569,7 +565,355 @@
           }
         ],
         "tags": [
-          "tasks"
+          "patients"
+        ]
+      }
+    },
+    "/api/consultations": {
+      "post": {
+        "operationId": "consultationsCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultationCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      },
+      "get": {
+        "operationId": "consultationsList",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "patientId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^[0-9a-f]{24}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationListResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}": {
+      "get": {
+        "operationId": "consultationsGet",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}/ask": {
+      "post": {
+        "operationId": "consultationsAsk",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}/answer": {
+      "post": {
+        "operationId": "consultationsAnswer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "audio": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "audio"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}/answer-text": {
+      "post": {
+        "operationId": "consultationsAnswerText",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerTextRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}/finish": {
+      "post": {
+        "operationId": "consultationsFinish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
+        ]
+      }
+    },
+    "/api/consultations/{id}/summary": {
+      "patch": {
+        "operationId": "consultationsUpdateSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummaryUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultationDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "consultations"
         ]
       }
     },
@@ -749,7 +1093,7 @@
   },
   "info": {
     "title": "Agentic Dev Kit API",
-    "description": "Auth, tasks, and AI (copilot/speech) endpoints.",
+    "description": "Auth, patients, consultations, and AI (copilot/voice) endpoints.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -793,7 +1137,7 @@
                 "properties": {
                   "model": {
                     "type": "string",
-                    "pattern": "^(google|bedrock|mock):.+$"
+                    "pattern": "^(google|bedrock|sarvam|mock):.+$"
                   },
                   "temperature": {
                     "type": "number",
@@ -895,11 +1239,33 @@
                   "hint"
                 ],
                 "additionalProperties": false
+              },
+              "sarvamApiKey": {
+                "default": {
+                  "set": false,
+                  "hint": null
+                },
+                "type": "object",
+                "properties": {
+                  "set": {
+                    "type": "boolean"
+                  },
+                  "hint": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "set",
+                  "hint"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
               "googleApiKey",
-              "bedrockApiKey"
+              "bedrockApiKey",
+              "sarvamApiKey"
             ],
             "additionalProperties": false
           }
@@ -940,7 +1306,7 @@
                 "properties": {
                   "model": {
                     "type": "string",
-                    "pattern": "^(google|bedrock|mock):.+$"
+                    "pattern": "^(google|bedrock|sarvam|mock):.+$"
                   },
                   "temperature": {
                     "type": "number",
@@ -996,6 +1362,12 @@
                 "nullable": true
               },
               "bedrockApiKey": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 512,
+                "nullable": true
+              },
+              "sarvamApiKey": {
                 "type": "string",
                 "minLength": 8,
                 "maxLength": 512,
@@ -1247,7 +1619,7 @@
           "email"
         ]
       },
-      "TaskListResponseDto_Output": {
+      "PatientListResponseDto_Output": {
         "type": "object",
         "properties": {
           "items": {
@@ -1259,27 +1631,47 @@
                   "type": "string",
                   "pattern": "^[0-9a-f]{24}$"
                 },
-                "title": {
+                "name": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 200
+                  "maxLength": 120
                 },
-                "description": {
-                  "type": "string",
-                  "maxLength": 2000
+                "age": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 120
                 },
-                "status": {
+                "sex": {
                   "type": "string",
                   "enum": [
-                    "todo",
-                    "in_progress",
-                    "done"
+                    "male",
+                    "female",
+                    "other"
                   ]
                 },
-                "dueDate": {
+                "language": {
                   "type": "string",
-                  "format": "date-time",
-                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                  "enum": [
+                    "en-IN",
+                    "hi-IN",
+                    "bn-IN",
+                    "gu-IN",
+                    "kn-IN",
+                    "ml-IN",
+                    "mr-IN",
+                    "od-IN",
+                    "pa-IN",
+                    "ta-IN",
+                    "te-IN"
+                  ]
+                },
+                "phone": {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                "notes": {
+                  "type": "string",
+                  "maxLength": 2000
                 },
                 "createdAt": {
                   "type": "string",
@@ -1294,8 +1686,10 @@
               },
               "required": [
                 "id",
-                "title",
-                "status",
+                "name",
+                "age",
+                "sex",
+                "language",
                 "createdAt",
                 "updatedAt"
               ],
@@ -1313,56 +1707,107 @@
         ],
         "additionalProperties": false
       },
-      "TaskCreateDto": {
+      "PatientCreateDto": {
         "type": "object",
         "properties": {
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 120
           },
-          "description": {
+          "age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 120
+          },
+          "sex": {
+            "type": "string",
+            "enum": [
+              "male",
+              "female",
+              "other"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "notes": {
             "type": "string",
             "maxLength": 2000
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
           }
         },
         "required": [
-          "title"
+          "name",
+          "age",
+          "sex",
+          "language"
         ]
       },
-      "TaskDto_Output": {
+      "PatientDto_Output": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "pattern": "^[0-9a-f]{24}$"
           },
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 120
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000
+          "age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 120
           },
-          "status": {
+          "sex": {
             "type": "string",
             "enum": [
-              "todo",
-              "in_progress",
-              "done"
+              "male",
+              "female",
+              "other"
             ]
           },
-          "dueDate": {
+          "language": {
             "type": "string",
-            "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
           },
           "createdAt": {
             "type": "string",
@@ -1377,41 +1822,871 @@
         },
         "required": [
           "id",
-          "title",
-          "status",
+          "name",
+          "age",
+          "sex",
+          "language",
           "createdAt",
           "updatedAt"
         ],
         "additionalProperties": false
       },
-      "TaskUpdateDto": {
+      "PatientUpdateDto": {
         "type": "object",
         "properties": {
-          "title": {
+          "name": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 120
           },
-          "description": {
+          "age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 120
+          },
+          "sex": {
+            "type": "string",
+            "enum": [
+              "male",
+              "female",
+              "other"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "notes": {
             "type": "string",
             "maxLength": 2000,
             "nullable": true
+          }
+        }
+      },
+      "ConsultationCreateDto": {
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{24}$"
+          },
+          "doctorLanguage": {
+            "default": "en-IN",
+            "type": "string",
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          }
+        },
+        "required": [
+          "patientId"
+        ]
+      },
+      "ConsultationDto_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{24}$"
+          },
+          "patientId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{24}$"
           },
           "status": {
             "type": "string",
             "enum": [
-              "todo",
               "in_progress",
-              "done"
+              "completed"
             ]
           },
-          "dueDate": {
+          "doctorLanguage": {
+            "type": "string",
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          },
+          "patientLanguage": {
+            "type": "string",
+            "enum": [
+              "en-IN",
+              "hi-IN",
+              "bn-IN",
+              "gu-IN",
+              "kn-IN",
+              "ml-IN",
+              "mr-IN",
+              "od-IN",
+              "pa-IN",
+              "ta-IN",
+              "te-IN"
+            ]
+          },
+          "turns": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "speaker": {
+                  "type": "string",
+                  "enum": [
+                    "doctor",
+                    "patient"
+                  ]
+                },
+                "sourceLanguage": {
+                  "type": "string",
+                  "enum": [
+                    "en-IN",
+                    "hi-IN",
+                    "bn-IN",
+                    "gu-IN",
+                    "kn-IN",
+                    "ml-IN",
+                    "mr-IN",
+                    "od-IN",
+                    "pa-IN",
+                    "ta-IN",
+                    "te-IN"
+                  ]
+                },
+                "targetLanguage": {
+                  "type": "string",
+                  "enum": [
+                    "en-IN",
+                    "hi-IN",
+                    "bn-IN",
+                    "gu-IN",
+                    "kn-IN",
+                    "ml-IN",
+                    "mr-IN",
+                    "od-IN",
+                    "pa-IN",
+                    "ta-IN",
+                    "te-IN"
+                  ]
+                },
+                "sourceText": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "translatedText": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "speaker",
+                "sourceLanguage",
+                "targetLanguage",
+                "sourceText",
+                "translatedText",
+                "at"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "chiefComplaint": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "symptoms": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "duration": {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "mild",
+                        "moderate",
+                        "severe"
+                      ]
+                    },
+                    "notes": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "history": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "medications": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "allergies": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "redFlags": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 300
+                }
+              },
+              "additionalNotes": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "chiefComplaint",
+              "symptoms",
+              "history",
+              "medications",
+              "allergies",
+              "redFlags",
+              "additionalNotes"
+            ],
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          },
+          "completedAt": {
             "type": "string",
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
             "nullable": true
           }
-        }
+        },
+        "required": [
+          "id",
+          "patientId",
+          "status",
+          "doctorLanguage",
+          "patientLanguage",
+          "turns",
+          "summary",
+          "createdAt",
+          "updatedAt",
+          "completedAt"
+        ],
+        "additionalProperties": false
+      },
+      "ConsultationListResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{24}$"
+                },
+                "patientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{24}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "in_progress",
+                    "completed"
+                  ]
+                },
+                "doctorLanguage": {
+                  "type": "string",
+                  "enum": [
+                    "en-IN",
+                    "hi-IN",
+                    "bn-IN",
+                    "gu-IN",
+                    "kn-IN",
+                    "ml-IN",
+                    "mr-IN",
+                    "od-IN",
+                    "pa-IN",
+                    "ta-IN",
+                    "te-IN"
+                  ]
+                },
+                "patientLanguage": {
+                  "type": "string",
+                  "enum": [
+                    "en-IN",
+                    "hi-IN",
+                    "bn-IN",
+                    "gu-IN",
+                    "kn-IN",
+                    "ml-IN",
+                    "mr-IN",
+                    "od-IN",
+                    "pa-IN",
+                    "ta-IN",
+                    "te-IN"
+                  ]
+                },
+                "turns": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "speaker": {
+                        "type": "string",
+                        "enum": [
+                          "doctor",
+                          "patient"
+                        ]
+                      },
+                      "sourceLanguage": {
+                        "type": "string",
+                        "enum": [
+                          "en-IN",
+                          "hi-IN",
+                          "bn-IN",
+                          "gu-IN",
+                          "kn-IN",
+                          "ml-IN",
+                          "mr-IN",
+                          "od-IN",
+                          "pa-IN",
+                          "ta-IN",
+                          "te-IN"
+                        ]
+                      },
+                      "targetLanguage": {
+                        "type": "string",
+                        "enum": [
+                          "en-IN",
+                          "hi-IN",
+                          "bn-IN",
+                          "gu-IN",
+                          "kn-IN",
+                          "ml-IN",
+                          "mr-IN",
+                          "od-IN",
+                          "pa-IN",
+                          "ta-IN",
+                          "te-IN"
+                        ]
+                      },
+                      "sourceText": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      },
+                      "translatedText": {
+                        "type": "string",
+                        "maxLength": 4000
+                      },
+                      "at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "speaker",
+                      "sourceLanguage",
+                      "targetLanguage",
+                      "sourceText",
+                      "translatedText",
+                      "at"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "summary": {
+                  "type": "object",
+                  "properties": {
+                    "chiefComplaint": {
+                      "type": "string",
+                      "maxLength": 500
+                    },
+                    "symptoms": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200
+                          },
+                          "duration": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": [
+                              "mild",
+                              "moderate",
+                              "severe"
+                            ]
+                          },
+                          "notes": {
+                            "type": "string",
+                            "maxLength": 500
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "history": {
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "medications": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 200
+                      }
+                    },
+                    "allergies": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 200
+                      }
+                    },
+                    "redFlags": {
+                      "maxItems": 10,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 300
+                      }
+                    },
+                    "additionalNotes": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "chiefComplaint",
+                    "symptoms",
+                    "history",
+                    "medications",
+                    "allergies",
+                    "redFlags",
+                    "additionalNotes"
+                  ],
+                  "additionalProperties": false,
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "patientId",
+                "status",
+                "doctorLanguage",
+                "patientLanguage",
+                "turns",
+                "summary",
+                "createdAt",
+                "updatedAt",
+                "completedAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "AskRequestDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "AskResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "turn": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "speaker": {
+                "type": "string",
+                "enum": [
+                  "doctor",
+                  "patient"
+                ]
+              },
+              "sourceLanguage": {
+                "type": "string",
+                "enum": [
+                  "en-IN",
+                  "hi-IN",
+                  "bn-IN",
+                  "gu-IN",
+                  "kn-IN",
+                  "ml-IN",
+                  "mr-IN",
+                  "od-IN",
+                  "pa-IN",
+                  "ta-IN",
+                  "te-IN"
+                ]
+              },
+              "targetLanguage": {
+                "type": "string",
+                "enum": [
+                  "en-IN",
+                  "hi-IN",
+                  "bn-IN",
+                  "gu-IN",
+                  "kn-IN",
+                  "ml-IN",
+                  "mr-IN",
+                  "od-IN",
+                  "pa-IN",
+                  "ta-IN",
+                  "te-IN"
+                ]
+              },
+              "sourceText": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "translatedText": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            },
+            "required": [
+              "id",
+              "speaker",
+              "sourceLanguage",
+              "targetLanguage",
+              "sourceText",
+              "translatedText",
+              "at"
+            ],
+            "additionalProperties": false
+          },
+          "audioBase64": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "turn",
+          "audioBase64"
+        ],
+        "additionalProperties": false
+      },
+      "AnswerResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "turn": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "speaker": {
+                "type": "string",
+                "enum": [
+                  "doctor",
+                  "patient"
+                ]
+              },
+              "sourceLanguage": {
+                "type": "string",
+                "enum": [
+                  "en-IN",
+                  "hi-IN",
+                  "bn-IN",
+                  "gu-IN",
+                  "kn-IN",
+                  "ml-IN",
+                  "mr-IN",
+                  "od-IN",
+                  "pa-IN",
+                  "ta-IN",
+                  "te-IN"
+                ]
+              },
+              "targetLanguage": {
+                "type": "string",
+                "enum": [
+                  "en-IN",
+                  "hi-IN",
+                  "bn-IN",
+                  "gu-IN",
+                  "kn-IN",
+                  "ml-IN",
+                  "mr-IN",
+                  "od-IN",
+                  "pa-IN",
+                  "ta-IN",
+                  "te-IN"
+                ]
+              },
+              "sourceText": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "translatedText": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              }
+            },
+            "required": [
+              "id",
+              "speaker",
+              "sourceLanguage",
+              "targetLanguage",
+              "sourceText",
+              "translatedText",
+              "at"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "turn"
+        ],
+        "additionalProperties": false
+      },
+      "AnswerTextRequestDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "SummaryUpdateDto": {
+        "type": "object",
+        "properties": {
+          "chiefComplaint": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "symptoms": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "duration": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "mild",
+                    "moderate",
+                    "severe"
+                  ]
+                },
+                "notes": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "history": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "medications": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "allergies": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "redFlags": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 300
+            }
+          },
+          "additionalNotes": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "chiefComplaint",
+          "symptoms",
+          "history",
+          "medications",
+          "allergies",
+          "redFlags",
+          "additionalNotes"
+        ]
       },
       "ChatRequestDto": {
         "type": "object",

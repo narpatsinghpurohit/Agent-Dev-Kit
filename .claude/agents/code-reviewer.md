@@ -32,7 +32,7 @@ only for `git diff` / `git status` and turbo verification commands
      `src/shared/testing/**` / tests; JSX in a `.ts` hook file; `react-router-dom`
      anywhere; route files doing more than config; barrels exporting internals.
    - API: DB queries missing the `ownerId` predicate (compare with
-     apps/api/src/tasks/tasks.repository.ts); 403 where 404 is required;
+     apps/api/src/patients/patients.repository.ts); 403 where 404 is required;
      class-validator/passport imports; responses without `@ZodResponse`;
      throttler TTLs that look like seconds (they are MILLISECONDS).
    - AI: provider SDK imports outside `apps/api/src/ai/`; hardcoded model ids

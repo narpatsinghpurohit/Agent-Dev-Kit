@@ -126,6 +126,13 @@ export function SettingsPageView({
             form={form}
             onClear={onClearSecret}
           />
+          <SecretField
+            name="sarvamApiKey"
+            label="Sarvam API key (voice pipeline)"
+            state={secrets.sarvamApiKey}
+            form={form}
+            onClear={onClearSecret}
+          />
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="awsRegion">
               {(field) => (
@@ -268,7 +275,7 @@ function SecretField({
   form,
   onClear,
 }: {
-  name: 'googleApiKey' | 'bedrockApiKey';
+  name: SecretNameType;
   label: string;
   state: { set: boolean; hint: string | null };
   form: SettingsPageViewModel['form'];

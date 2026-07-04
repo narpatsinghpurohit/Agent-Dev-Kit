@@ -45,14 +45,14 @@
         "default": "./dist/user.cjs"
       }
     },
-    "./tasks": {
+    "./medical": {
       "import": {
-        "types": "./dist/tasks.d.ts",
-        "default": "./dist/tasks.js"
+        "types": "./dist/medical.d.ts",
+        "default": "./dist/medical.js"
       },
       "require": {
-        "types": "./dist/tasks.d.cts",
-        "default": "./dist/tasks.cjs"
+        "types": "./dist/medical.d.cts",
+        "default": "./dist/medical.cjs"
       }
     },
     "./ai": {

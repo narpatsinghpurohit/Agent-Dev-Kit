@@ -12,10 +12,9 @@ interface ToolPartLike {
 }
 
 const TOOL_LABEL: Record<string, string> = {
-  'tool-listTasks': 'List tasks',
-  'tool-createTask': 'Create task',
-  'tool-updateTask': 'Update task',
-  'tool-deleteTask': 'Delete task',
+  'tool-listPatients': 'List patients',
+  'tool-createPatient': 'Register patient',
+  'tool-getPatientHistory': 'Patient history',
 };
 
 export function ToolPartCard({

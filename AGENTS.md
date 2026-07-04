@@ -2,37 +2,40 @@
 
 ## What this repo is
 
-A production-shaped TypeScript monorepo template: a NestJS API (auth, tasks, an AI copilot
-module) and a Vite/React SPA, glued by a shared zod contract and a generated API client.
-It runs fully keyless out of the box (mock AI provider, in-memory Mongo for tests).
-Everything an agent must follow is lint-, type-, or CI-enforced where possible; the rest
-lives in `docs/guidelines/`. Read the pointer doc before working in an unfamiliar area.
+The Agentic Dev Kit's medical demo branch: a multilingual patient-intake assistant
+(doctor interviews a patient across a language barrier — Sarvam AI translates and speaks
+both ways, an LLM drafts the structured record). A NestJS API (auth, patients,
+consultations, AI copilot + voice pipeline) and a Vite/React SPA, glued by a shared zod
+contract and a generated API client. It runs fully keyless out of the box (mock AI +
+mock voice, in-memory Mongo for tests). Everything an agent must follow is lint-, type-,
+or CI-enforced where possible; the rest lives in `docs/guidelines/`. Read the pointer
+doc before working in an unfamiliar area.
 
 ## Monorepo map
 
-| Workspace                    | What it is                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| `apps/api`                   | NestJS 11 (Express 5) + Mongoose 9. Auth, tasks, AI module. Emits `openapi.json`.           |
-| `apps/web`                   | Vite 8 + React 19 + TanStack Router/Query/Form + Tailwind v4 SPA.                           |
-| `packages/schemas`           | `@repo/schemas` — zod 4 domain contract. Compiled (tsup, ESM+CJS).                          |
-| `packages/api-client`        | `@repo/api-client` — orval-generated TanStack Query hooks + MSW mocks + auth fetch runtime. |
-| `packages/eslint-config`     | Shared flat configs; encodes the architecture as lint rules (fixture-tested).               |
-| `packages/typescript-config` | Shared `tsconfig` bases (base / nestjs / react-app).                                        |
+| Workspace                    | What it is                                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `apps/api`                   | NestJS 11 (Express 5) + Mongoose 9. Auth, patients, consultations, AI module (copilot + Sarvam voice). Emits `openapi.json`. |
+| `apps/web`                   | Vite 8 + React 19 + TanStack Router/Query/Form + Tailwind v4 SPA.                                                            |
+| `packages/schemas`           | `@repo/schemas` — zod 4 domain contract. Compiled (tsup, ESM+CJS).                                                           |
+| `packages/api-client`        | `@repo/api-client` — orval-generated TanStack Query hooks + MSW mocks + auth fetch runtime.                                  |
+| `packages/eslint-config`     | Shared flat configs; encodes the architecture as lint rules (fixture-tested).                                                |
+| `packages/typescript-config` | Shared `tsconfig` bases (base / nestjs / react-app).                                                                         |
 
 ## Commands
 
-| Command                                                       | What it does                                                                                                                                      |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                                    | All dev servers via turbo (api on :3000, web on :5173).                                                                                           |
-| `pnpm build` / `pnpm lint` / `pnpm check-types` / `pnpm test` | Turbo across all workspaces.                                                                                                                      |
-| `pnpm test:e2e`                                               | API supertest e2e + web Playwright e2e.                                                                                                           |
-| `pnpm gen:client`                                             | Regenerate the API client (turbo chain: api build → emit-openapi → orval).                                                                        |
-| `pnpm db:up` / `pnpm db:seed`                                 | Docker Mongo replica set / seed example tasks for the bootstrap admin (from ADMIN_EMAIL/ADMIN_PASSWORD in apps/api/.env — there is no demo user). |
-| `pnpm format` / `pnpm syncpack:lint`                          | Prettier / catalog-version drift check.                                                                                                           |
-| `pnpm --filter @repo/api dev`                                 | API only (needs `pnpm db:up` first).                                                                                                              |
-| `pnpm --filter @repo/web dev`                                 | Web only (proxies `/api` to :3000).                                                                                                               |
-| `pnpm --filter @repo/web routes:generate`                     | Regenerate `src/routeTree.gen.ts` (also happens during `vite dev`).                                                                               |
-| `pnpm --filter @repo/schemas build`                           | Rebuild the compiled schemas package after editing it.                                                                                            |
+| Command                                                       | What it does                                                                                                                                                         |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                    | All dev servers via turbo (api on :3000, web on :5173).                                                                                                              |
+| `pnpm build` / `pnpm lint` / `pnpm check-types` / `pnpm test` | Turbo across all workspaces.                                                                                                                                         |
+| `pnpm test:e2e`                                               | API supertest e2e + web Playwright e2e.                                                                                                                              |
+| `pnpm gen:client`                                             | Regenerate the API client (turbo chain: api build → emit-openapi → orval).                                                                                           |
+| `pnpm db:up` / `pnpm db:seed`                                 | Docker Mongo replica set / seed sample patients + a consultation for the bootstrap admin (from ADMIN_EMAIL/ADMIN_PASSWORD in apps/api/.env — there is no demo user). |
+| `pnpm format` / `pnpm syncpack:lint`                          | Prettier / catalog-version drift check.                                                                                                                              |
+| `pnpm --filter @repo/api dev`                                 | API only (needs `pnpm db:up` first).                                                                                                                                 |
+| `pnpm --filter @repo/web dev`                                 | Web only (proxies `/api` to :3000).                                                                                                                                  |
+| `pnpm --filter @repo/web routes:generate`                     | Regenerate `src/routeTree.gen.ts` (also happens during `vite dev`).                                                                                                  |
+| `pnpm --filter @repo/schemas build`                           | Rebuild the compiled schemas package after editing it.                                                                                                               |
 
 ## Non-negotiables
 

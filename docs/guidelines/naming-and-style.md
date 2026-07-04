@@ -6,10 +6,10 @@ rule you have not hit yet.
 
 ## Must
 
-- **kebab-case for every file name**: `task-status-badge.tsx`,
+- **kebab-case for every file name**: `summary-editor.tsx`,
   `one-time-tokens.repository.ts`, `model-registry.service.ts`. The only
   exceptions are TanStack Router's route-file conventions
-  (`__root.tsx`, `_authenticated.tsx`, `$taskId.tsx`) and generated files.
+  (`__root.tsx`, `_authenticated.tsx`, `$patientId.tsx`) and generated files.
 - **Role suffixes in the API** (NestJS): `.module.ts`, `.controller.ts`,
   `.service.ts`, `.repository.ts`, `.schema.ts` (Mongoose), `.guard.ts`, and
   `.dto.ts` inside a `dto/` folder. One role per file.
@@ -49,7 +49,7 @@ rule you have not hit yet.
 
 ## Must not
 
-- No PascalCase/camelCase/snake_case file names (`TaskList.tsx`, `authUtils.ts`).
+- No PascalCase/camelCase/snake_case file names (`PatientList.tsx`, `authUtils.ts`).
 - No default-exported React components — breaks grep-ability and invites
   rename-on-import drift.
 - No `// eslint-disable-next-line <rule>` without a `-- reason` description.
@@ -57,25 +57,24 @@ rule you have not hit yet.
   type system genuinely cannot express it.
 - No commented-out code and no narration comments (`// loop over tasks`).
 - No utility grab-bags (`utils.ts` at package root) — helpers live next to
-  their feature (`features/tasks/lib/format.ts`) or in an app-level `src/lib/`
-  module with a real name (`src/lib/auth.ts`).
+  their feature or in an app-level module with a real name
+  (`src/lib/auth.ts`, `src/components/form-styles.ts`).
 
 ## Canonical example in this repo
 
 The suffix mirror, side by side:
 
 ```
-apps/api/src/tasks/                 apps/web/src/features/tasks/task-list/
-  tasks.module.ts                     task-list.hook.ts      (ViewModel)
-  tasks.controller.ts                 task-list.view.tsx     (pure JSX)
-  tasks.service.ts                    task-list.tsx          (container)
-  tasks.repository.ts                 task-list.hook.test.ts
-  task.schema.ts                      task-list.view.test.tsx
-  tasks.service.spec.ts
-  dto/tasks.dto.ts
+apps/api/src/patients/              apps/web/src/features/patients/patient-list/
+  patients.module.ts                  patient-list.hook.ts      (ViewModel)
+  patients.controller.ts              patient-list.view.tsx     (pure JSX)
+  patients.service.ts                 patient-list.tsx          (container)
+  patients.repository.ts              patient-list.hook.test.ts
+  patient.schema.ts
+  dto/patients.dto.ts
 ```
 
-A constraint comment doing its job, from `apps/api/src/tasks/tasks.repository.ts`:
+A constraint comment doing its job, from `apps/api/src/patients/patients.repository.ts`:
 
 ```ts
 /**

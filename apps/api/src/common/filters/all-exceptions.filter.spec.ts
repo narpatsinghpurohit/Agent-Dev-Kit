@@ -26,9 +26,9 @@ describe('AllExceptionsFilter', () => {
   });
 
   it('passes through HttpExceptions with reason phrases', () => {
-    const { statusCode, body } = run(new NotFoundException('Task not found'));
+    const { statusCode, body } = run(new NotFoundException('Patient not found'));
     expect(statusCode).toBe(404);
-    expect(body).toMatchObject({ error: 'Not Found', message: 'Task not found' });
+    expect(body).toMatchObject({ error: 'Not Found', message: 'Patient not found' });
   });
 
   it('flattens array messages from HttpExceptions', () => {
