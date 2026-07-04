@@ -91,6 +91,7 @@ export class ModelRegistryService implements OnModuleInit {
         mode: ai.providerMode,
         overrides: envOverridesFrom(get),
         copilot: ai.copilot,
+        settingsOverrides: ai.featureModels,
       });
 
       // Graceful degradation: a feature whose provider has no key falls back

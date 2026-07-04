@@ -28,6 +28,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AiModelsResponseDtoOutput,
   ChatRequestDto,
   SpeechTranscribeBody,
   TranscribeResponseDtoOutput,
@@ -438,9 +439,9 @@ export const getChatModelsUrl = () => {
 /**
  * @summary Which model serves each AI feature (public metadata)
  */
-export const chatModels = async ( options?: RequestInit): Promise<void> => {
+export const chatModels = async ( options?: RequestInit): Promise<AiModelsResponseDtoOutput> => {
 
-  return customFetch<void>(getChatModelsUrl(),
+  return customFetch<AiModelsResponseDtoOutput>(getChatModelsUrl(),
   {
     ...options,
     method: 'GET'

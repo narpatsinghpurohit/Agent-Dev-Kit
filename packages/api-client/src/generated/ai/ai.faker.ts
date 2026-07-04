@@ -10,9 +10,12 @@ import {
 } from '@faker-js/faker';
 
 import type {
+  AiModelsResponseDtoOutput,
   TranscribeResponseDtoOutput
 } from '../models';
 
+
+export const getChatModelsResponseMock = (overrideResponse: Partial<Extract<AiModelsResponseDtoOutput, object>> = {}): AiModelsResponseDtoOutput => ({features: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({feature: faker.helpers.arrayElement(['copilot-chat','summarize','speech-stt','speech-tts','voice-stt','voice-tts','voice-translate','consultation-extract','treatment-plan','clinical-insight','quick-asks'] as const), model: faker.helpers.fromRegExp("^(google|bedrock|sarvam|mock):.+$")})), ...overrideResponse})
 
 export const getSpeechTranscribeResponseMock = (overrideResponse: Partial<Extract<TranscribeResponseDtoOutput, object>> = {}): TranscribeResponseDtoOutput => ({text: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 

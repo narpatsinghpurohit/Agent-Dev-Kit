@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
-import { createZodDto } from 'nestjs-zod';
-import { ChatRequestSchema } from '@repo/schemas';
+import { createZodDto, ZodResponse } from 'nestjs-zod';
+import { AiModelsResponseSchema, ChatRequestSchema } from '@repo/schemas';
 import {
   CurrentUser,
   type AuthenticatedUser,
@@ -12,6 +12,7 @@ import { ModelRegistryService } from '../model-registry.service';
 import { ChatService } from './chat.service';
 
 class ChatRequestDto extends createZodDto(ChatRequestSchema) {}
+class AiModelsResponseDto extends createZodDto(AiModelsResponseSchema) {}
 
 // AI endpoints are the most expensive in the app — tighter throttle than the
 // global default, and the daily token budget guards the economics.
@@ -53,7 +54,8 @@ export class ChatController {
 
   @Get('models')
   @ApiOperation({ summary: 'Which model serves each AI feature (public metadata)' })
-  models(): { features: ReturnType<ModelRegistryService['info']> } {
+  @ZodResponse({ status: 200, type: AiModelsResponseDto })
+  models() {
     return { features: this.modelRegistry.info() };
   }
 }

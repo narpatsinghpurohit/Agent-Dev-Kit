@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SettingsUpdateDtoAiCopilot } from './settingsUpdateDtoAiCopilot';
+import type { SettingsUpdateDtoAiFeatureModels } from './settingsUpdateDtoAiFeatureModels';
 import type { SettingsUpdateDtoAiProviderMode } from './settingsUpdateDtoAiProviderMode';
 
 export type SettingsUpdateDtoAi = {
@@ -21,4 +22,5 @@ export type SettingsUpdateDtoAi = {
      */
   dailyTokenBudget?: number;
   copilot?: SettingsUpdateDtoAiCopilot;
+  featureModels?: SettingsUpdateDtoAiFeatureModels;
 };

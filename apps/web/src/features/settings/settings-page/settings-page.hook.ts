@@ -2,12 +2,25 @@ import { useForm } from '@tanstack/react-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import {
+  useChatModelsSuspense,
   useSettingsGetSuspense,
   useSettingsUpdate,
   getSettingsGetUrl,
   getChatModelsUrl,
 } from '@repo/api-client';
-import { SettingsUpdateSchema, type SecretNameType, type SettingsUpdate } from '@repo/schemas';
+import {
+  RuntimeTunableFeatureSchema,
+  SettingsUpdateSchema,
+  type RuntimeTunableFeature,
+  type SecretNameType,
+  type SettingsUpdate,
+} from '@repo/schemas';
+
+/** 'consultation-extract' → 'Consultation extract'. */
+function humanizeFeature(feature: string): string {
+  const words = feature.replace(/-/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 /**
  * ViewModel for the runtime-settings screen. Numeric fields are edited as
@@ -17,9 +30,27 @@ import { SettingsUpdateSchema, type SecretNameType, type SettingsUpdate } from '
 export function useSettingsPage() {
   const queryClient = useQueryClient();
   const { data: settings, refetch } = useSettingsGetSuspense();
+  const { data: modelsInfo } = useChatModelsSuspense();
   const updateMutation = useSettingsUpdate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  const effectiveModels = modelsInfo.features;
+
+  // Per-feature override drafts, edited as plain strings ('' = no override).
+  // They live outside the tanstack form because the rows are dynamic; the
+  // submit handler below diffs them against the stored overrides.
+  const [featureModelDrafts, setFeatureModelDrafts] = useState<
+    Record<RuntimeTunableFeature, string>
+  >(
+    () =>
+      Object.fromEntries(
+        RuntimeTunableFeatureSchema.options.map((feature) => [
+          feature,
+          settings.ai.featureModels[feature] ?? '',
+        ]),
+      ) as Record<RuntimeTunableFeature, string>,
+  );
 
   const invalidate = useCallback(async () => {
     const prefixes = [getSettingsGetUrl(), getChatModelsUrl()];
@@ -64,6 +95,15 @@ export function useSettingsPage() {
       sarvamApiKey: '',
     },
     onSubmit: async ({ value, formApi }) => {
+      // Only touched overrides go into the patch: emptied where one is stored
+      // = null (clear, falls back to the env seed/default); unchanged = omit.
+      const featureModelsPatch: Partial<Record<RuntimeTunableFeature, string | null>> = {};
+      for (const feature of RuntimeTunableFeatureSchema.options) {
+        const draft = featureModelDrafts[feature].trim();
+        const saved = settings.ai.featureModels[feature] ?? '';
+        if (draft === saved) continue;
+        featureModelsPatch[feature] = draft === '' ? null : draft;
+      }
       const candidate = {
         ai: {
           providerMode: value.providerMode,
@@ -75,6 +115,9 @@ export function useSettingsPage() {
             maxOutputTokens: Number(value.maxOutputTokens),
             topP: value.topP.trim() === '' ? null : Number(value.topP),
           },
+          ...(Object.keys(featureModelsPatch).length > 0
+            ? { featureModels: featureModelsPatch }
+            : {}),
         },
         general: {
           corsOrigins: value.corsOrigins
@@ -119,8 +162,22 @@ export function useSettingsPage() {
     [refetch, submit],
   );
 
+  // One row per runtime-tunable feature: what serves it now, plus the
+  // override draft. Clearing empties the draft; the save flow turns that
+  // into a null patch entry.
+  const featureModels = RuntimeTunableFeatureSchema.options.map((feature) => ({
+    feature,
+    label: humanizeFeature(feature),
+    effectiveModel: effectiveModels.find((info) => info.feature === feature)?.model ?? null,
+    override: featureModelDrafts[feature],
+    onChange: (value: string) =>
+      setFeatureModelDrafts((drafts) => ({ ...drafts, [feature]: value })),
+    onClear: () => setFeatureModelDrafts((drafts) => ({ ...drafts, [feature]: '' })),
+  }));
+
   return {
     form,
+    featureModels,
     secrets: settings.secrets,
     serverError,
     savedAt,

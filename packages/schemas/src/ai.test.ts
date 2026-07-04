@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AiFeatureNameSchema,
+  AiModelsResponseSchema,
   ChatRequestSchema,
   FeatureModelConfigSchema,
   FeatureModelsSchema,
@@ -47,6 +48,18 @@ describe('FeatureModelConfigSchema', () => {
         temperature: 3,
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('AiModelsResponseSchema', () => {
+  it('wraps the feature→model entries and rejects malformed ones', () => {
+    expect(
+      AiModelsResponseSchema.safeParse({
+        features: [{ feature: 'copilot-chat', model: 'mock:copilot-chat' }],
+      }).success,
+    ).toBe(true);
+    expect(AiModelsResponseSchema.safeParse({ features: [{}] }).success).toBe(false);
+    expect(AiModelsResponseSchema.safeParse([]).success).toBe(false);
   });
 });
 

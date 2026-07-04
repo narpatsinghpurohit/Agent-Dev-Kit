@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SettingsResponseDtoOutputAiCopilot } from './settingsResponseDtoOutputAiCopilot';
+import type { SettingsResponseDtoOutputAiFeatureModels } from './settingsResponseDtoOutputAiFeatureModels';
 import type { SettingsResponseDtoOutputAiProviderMode } from './settingsResponseDtoOutputAiProviderMode';
 
 export type SettingsResponseDtoOutputAi = {
@@ -21,4 +22,5 @@ export type SettingsResponseDtoOutputAi = {
      */
   dailyTokenBudget: number;
   copilot: SettingsResponseDtoOutputAiCopilot;
+  featureModels: SettingsResponseDtoOutputAiFeatureModels;
 };

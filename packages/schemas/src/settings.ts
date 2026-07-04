@@ -8,6 +8,22 @@ import { ModelRefSchema } from './ai';
  * stays in .env — see docs/guidelines/configuration.md for the decision tree.
  */
 
+/**
+ * Chat-capability features whose model ref admins can override at runtime.
+ * copilot-chat is excluded — it keeps its dedicated CopilotSettings block
+ * (model + sampling params). voice-* / speech-* stay env-only because they
+ * are provider-constrained (Sarvam REST pipeline / google-only speech) —
+ * swapping their model ref at runtime is never a routine ops task.
+ */
+export const RuntimeTunableFeatureSchema = z.enum([
+  'summarize',
+  'consultation-extract',
+  'treatment-plan',
+  'clinical-insight',
+  'quick-asks',
+]);
+export type RuntimeTunableFeature = z.infer<typeof RuntimeTunableFeatureSchema>;
+
 /** Everything the copilot needs, runtime-tunable from the settings screen. */
 export const CopilotSettingsSchema = z.object({
   model: ModelRefSchema,
@@ -24,6 +40,14 @@ export const AiSettingsSchema = z.object({
   /** Per-user daily token cap across all AI features. */
   dailyTokenBudget: z.number().int().positive(),
   copilot: CopilotSettingsSchema,
+  /**
+   * Per-feature model overrides. Precedence per feature: this map
+   * > AI_MODEL_<FEATURE> env seed > built-in default. Absent key = no
+   * runtime override. `.default({})`: stored `ai` rows written before this
+   * field existed must keep parsing (same rationale as
+   * GeneralSettings.googleClientId).
+   */
+  featureModels: z.partialRecord(RuntimeTunableFeatureSchema, ModelRefSchema).default({}),
 });
 export type AiSettings = z.infer<typeof AiSettingsSchema>;
 
@@ -76,7 +100,13 @@ export type SettingsResponse = z.infer<typeof SettingsResponseSchema>;
  */
 export const SettingsUpdateSchema = z.object({
   ai: AiSettingsSchema.partial()
-    .extend({ copilot: CopilotSettingsSchema.partial().optional() })
+    .extend({
+      copilot: CopilotSettingsSchema.partial().optional(),
+      /** null clears an override — the feature falls back to its env seed/default. */
+      featureModels: z
+        .partialRecord(RuntimeTunableFeatureSchema, ModelRefSchema.nullable())
+        .optional(),
+    })
     .optional(),
   general: GeneralSettingsSchema.partial().optional(),
   secrets: z

@@ -59,6 +59,12 @@ export const AiModelInfoSchema = z.object({
 });
 export type AiModelInfo = z.infer<typeof AiModelInfoSchema>;
 
+/** GET /ai/models — the effective feature→model map. */
+export const AiModelsResponseSchema = z.object({
+  features: z.array(AiModelInfoSchema),
+});
+export type AiModelsResponse = z.infer<typeof AiModelsResponseSchema>;
+
 /**
  * Shallow envelope validation for the copilot chat request (the AI SDK's
  * DefaultChatTransport body). Deep UIMessage validation happens server-side

@@ -132,6 +132,7 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
         ...this.ai,
         ...patch.ai,
         copilot: { ...this.ai.copilot, ...patch.ai?.copilot },
+        featureModels: this.mergeFeatureModels(patch.ai?.featureModels),
       });
       const nextGeneral = this.parseOr400(GeneralSettingsSchema, {
         ...this.general,
@@ -244,19 +245,48 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
     return result.data as z.output<S>;
   }
 
+  /** Per-feature model patch: null entries delete the stored override. */
+  private mergeFeatureModels(
+    patch: NonNullable<SettingsUpdate['ai']>['featureModels'],
+  ): AiSettings['featureModels'] {
+    const merged = { ...this.ai.featureModels };
+    for (const [feature, model] of Object.entries(patch ?? {}) as Array<
+      [keyof AiSettings['featureModels'], string | null]
+    >) {
+      // null clears the override → the env seed / built-in default applies.
+      if (model === null) delete merged[feature];
+      else merged[feature] = model;
+    }
+    return merged;
+  }
+
   /** Reject configurations that would break AI at request time. */
   private assertCoherent(ai: AiSettings, secrets: Record<SecretNameType, string | null>): void {
     if (ai.providerMode !== 'auto') return;
-    const provider = ai.copilot.model.split(':')[0];
-    if (provider === 'google' && !secrets.googleApiKey) {
-      throw new BadRequestException(
-        'copilot model uses google but no Gemini API key is set (secrets.googleApiKey)',
-      );
-    }
-    if (provider === 'bedrock' && !secrets.bedrockApiKey) {
-      throw new BadRequestException(
-        'copilot model uses bedrock but no Bedrock API key is set (secrets.bedrockApiKey)',
-      );
+    // Every explicitly configured runtime model must have its provider key.
+    const requireKey = (label: string, model: string) => {
+      const provider = model.split(':')[0];
+      if (provider === 'google' && !secrets.googleApiKey) {
+        throw new BadRequestException(
+          `${label} uses google but no Gemini API key is set (secrets.googleApiKey)`,
+        );
+      }
+      if (provider === 'bedrock' && !secrets.bedrockApiKey) {
+        throw new BadRequestException(
+          `${label} uses bedrock but no Bedrock API key is set (secrets.bedrockApiKey)`,
+        );
+      }
+    };
+    requireKey('copilot model', ai.copilot.model);
+    for (const [feature, model] of Object.entries(ai.featureModels) as Array<[string, string]>) {
+      // Tunable features are all chat — sarvam is voice-only REST, no chat alias.
+      const provider = model.split(':')[0];
+      if (provider !== 'google' && provider !== 'bedrock' && provider !== 'mock') {
+        throw new BadRequestException(
+          `feature "${feature}" is a chat feature — its model must use the google, bedrock, or mock provider (got "${model}")`,
+        );
+      }
+      requireKey(`feature "${feature}" model`, model);
     }
   }
 
@@ -280,6 +310,9 @@ export class SettingsService implements OnModuleInit, OnModuleDestroy {
           this.get('AI_MODEL_COPILOT_CHAT') ||
           (this.get('AI_PROVIDER_MODE') === 'mock' ? 'mock:copilot-chat' : COPILOT_DEFAULTS.model),
       },
+      // No runtime overrides by default — AI_MODEL_<FEATURE> env vars stay
+      // the lower-precedence seed inside resolveFeatureModels.
+      featureModels: {},
     };
   }
 

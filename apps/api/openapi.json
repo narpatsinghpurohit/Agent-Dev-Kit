@@ -1568,7 +1568,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiModelsResponseDto_Output"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1730,13 +1737,22 @@
                   "topP"
                 ],
                 "additionalProperties": false
+              },
+              "featureModels": {
+                "default": {},
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^(google|bedrock|sarvam|mock):.+$"
+                }
               }
             },
             "required": [
               "providerMode",
               "awsRegion",
               "dailyTokenBudget",
-              "copilot"
+              "copilot",
+              "featureModels"
             ],
             "additionalProperties": false
           },
@@ -1891,6 +1907,14 @@
                     "maximum": 1,
                     "nullable": true
                   }
+                }
+              },
+              "featureModels": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^(google|bedrock|sarvam|mock):.+$",
+                  "nullable": true
                 }
               }
             }
@@ -4473,6 +4497,48 @@
           "id",
           "messages"
         ]
+      },
+      "AiModelsResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "feature": {
+                  "type": "string",
+                  "enum": [
+                    "copilot-chat",
+                    "summarize",
+                    "speech-stt",
+                    "speech-tts",
+                    "voice-stt",
+                    "voice-tts",
+                    "voice-translate",
+                    "consultation-extract",
+                    "treatment-plan",
+                    "clinical-insight",
+                    "quick-asks"
+                  ]
+                },
+                "model": {
+                  "type": "string",
+                  "pattern": "^(google|bedrock|sarvam|mock):.+$"
+                }
+              },
+              "required": [
+                "feature",
+                "model"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "additionalProperties": false
       },
       "TranscribeResponseDto_Output": {
         "type": "object",

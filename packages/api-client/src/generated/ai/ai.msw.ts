@@ -18,9 +18,12 @@ import type {
 } from 'msw';
 
 import type {
+  AiModelsResponseDtoOutput,
   TranscribeResponseDtoOutput
 } from '../models';
 
+
+export const getChatModelsResponseMock = (overrideResponse: Partial<Extract<AiModelsResponseDtoOutput, object>> = {}): AiModelsResponseDtoOutput => ({features: Array.from({ length: faker.number.int({min: 1, max: 10}) }, (_, i) => i + 1).map(() => ({feature: faker.helpers.arrayElement(['copilot-chat','summarize','speech-stt','speech-tts','voice-stt','voice-tts','voice-translate','consultation-extract','treatment-plan','clinical-insight','quick-asks'] as const), model: faker.helpers.fromRegExp("^(google|bedrock|sarvam|mock):.+$")})), ...overrideResponse})
 
 export const getSpeechTranscribeResponseMock = (overrideResponse: Partial<Extract<TranscribeResponseDtoOutput, object>> = {}): TranscribeResponseDtoOutput => ({text: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
@@ -55,11 +58,13 @@ export const getChatMessagesMockHandler = (overrideResponse?: void | ((info: Par
   }, options)
 }
 
-export const getChatModelsMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
+export const getChatModelsMockHandler = (overrideResponse?: AiModelsResponseDtoOutput | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AiModelsResponseDtoOutput> | AiModelsResponseDtoOutput), options?: RequestHandlerOptions) => {
   return http.get('*/api/ai/models', async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
-  if (typeof overrideResponse === 'function') {await overrideResponse(info); }
 
-    return new HttpResponse(null,
+
+    return HttpResponse.json(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getChatModelsResponseMock(),
       { status: 200
       })
   }, options)

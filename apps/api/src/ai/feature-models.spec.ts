@@ -38,6 +38,38 @@ describe('resolveFeatureModels', () => {
     });
   });
 
+  it('lets settings overrides beat env overrides, which beat defaults', () => {
+    // Default only.
+    expect(resolveFeatureModels({ mode: 'auto', overrides: {} })['treatment-plan'].model).toBe(
+      'google:gemini-2.5-flash-lite',
+    );
+    // Env beats default.
+    const envOnly = resolveFeatureModels({
+      mode: 'auto',
+      overrides: { 'treatment-plan': 'google:gemini-3.5-flash' },
+    });
+    expect(envOnly['treatment-plan'].model).toBe('google:gemini-3.5-flash');
+    // Settings beat env.
+    const models = resolveFeatureModels({
+      mode: 'auto',
+      overrides: { 'treatment-plan': 'google:gemini-3.5-flash' },
+      settingsOverrides: { 'treatment-plan': 'bedrock:us.anthropic.claude-haiku-5' },
+    });
+    expect(models['treatment-plan'].model).toBe('bedrock:us.anthropic.claude-haiku-5');
+    // Params still come from the central config, not the override.
+    expect(models['treatment-plan'].maxOutputTokens).toBe(2048);
+  });
+
+  it('keeps auto-mode validation for settings overrides (sarvam has no chat)', () => {
+    expect(() =>
+      resolveFeatureModels({
+        mode: 'auto',
+        overrides: {},
+        settingsOverrides: { 'quick-asks': 'sarvam:sarvam-m' },
+      }),
+    ).toThrow(/chat feature/);
+  });
+
   it('rejects invalid model refs', () => {
     expect(() =>
       resolveFeatureModels({ mode: 'auto', overrides: { 'copilot-chat': 'openai:gpt-4o' } }),

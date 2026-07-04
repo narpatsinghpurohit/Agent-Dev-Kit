@@ -2,9 +2,10 @@ import type { SecretNameType } from '@repo/schemas';
 import { inputClass, primaryButtonClass } from '../../../components/form-styles';
 import type { SettingsPageViewModel } from './settings-page.hook';
 
-/** Pure settings surface: copilot, providers, general — one save. */
+/** Pure settings surface: copilot, feature models, providers, general — one save. */
 export function SettingsPageView({
   form,
+  featureModels,
   secrets,
   serverError,
   savedAt,
@@ -89,6 +90,39 @@ export function SettingsPageView({
               )}
             </form.Field>
           </div>
+        </Section>
+
+        <Section
+          title="Feature models"
+          subtitle="Per-feature model overrides. Blank = the built-in default (or its env seed); applies on save."
+        >
+          {featureModels.map((row) => (
+            <div key={row.feature} className="flex flex-col gap-1 text-sm">
+              <span>
+                {row.label}{' '}
+                <span className="text-xs text-ink-dim">
+                  (currently <span className="font-mono">{row.effectiveModel ?? 'unknown'}</span>)
+                </span>
+              </span>
+              <div className="flex gap-2">
+                <input
+                  className={`${inputClass} flex-1 font-mono`}
+                  placeholder={row.effectiveModel ?? 'provider:model-id'}
+                  value={row.override}
+                  onChange={(e) => row.onChange(e.target.value)}
+                />
+                {row.override ? (
+                  <button
+                    type="button"
+                    onClick={row.onClear}
+                    className="rounded-md border border-edge px-3 text-sm text-ink-dim hover:border-accent hover:text-ink"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ))}
         </Section>
 
         <Section

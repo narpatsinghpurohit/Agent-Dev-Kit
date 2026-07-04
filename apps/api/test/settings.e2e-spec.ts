@@ -141,6 +141,108 @@ describe('settings (e2e)', () => {
     expect(after.body.ai.providerMode).toBe('mock');
   });
 
+  it('applies runtime featureModels overrides above env, survives reload, and null-clears', async () => {
+    // Key + auto mode so the override resolves to a real (non-mock) provider.
+    await request(server)
+      .put('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        ai: {
+          providerMode: 'auto',
+          copilot: { model: 'google:gemini-3.5-flash' },
+          featureModels: { 'treatment-plan': 'google:gemini-3.1-pro-preview' },
+        },
+        secrets: { googleApiKey: 'AQ.test-key-value-5678' },
+      })
+      .expect(200);
+
+    const settings = await request(server)
+      .get('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+    expect(settings.body.ai.featureModels).toEqual({
+      'treatment-plan': 'google:gemini-3.1-pro-preview',
+    });
+
+    // The registry hot-swapped: the override is what actually serves the feature.
+    const findModel = async (feature: string) => {
+      const models = await request(server)
+        .get('/api/ai/models')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      return (models.body.features as Array<{ feature: string; model: string }>).find(
+        (f) => f.feature === feature,
+      )?.model;
+    };
+    expect(await findModel('treatment-plan')).toBe('google:gemini-3.1-pro-preview');
+
+    // Survives a cold reload from the database (fresh cache, same values).
+    // Keep the .js extension — NodeNext resolution (see create-test-app.ts).
+    const { SettingsService } = await import('../src/settings/settings.service.js');
+    const settingsService = app.get(SettingsService);
+    await settingsService['reload']();
+    expect(settingsService.getAi().featureModels).toEqual({
+      'treatment-plan': 'google:gemini-3.1-pro-preview',
+    });
+
+    // null clears the override → back to the env seed / built-in default.
+    const cleared = await request(server)
+      .put('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ ai: { featureModels: { 'treatment-plan': null } } })
+      .expect(200);
+    expect(cleared.body.ai.featureModels).toEqual({});
+    expect(await findModel('treatment-plan')).toBe('google:gemini-2.5-flash-lite');
+
+    // Back to mock so later suites stay keyless.
+    await request(server)
+      .put('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ ai: { providerMode: 'mock' }, secrets: { googleApiKey: null } })
+      .expect(200);
+  });
+
+  it('rejects featureModels overrides whose provider key is missing, naming the feature', async () => {
+    // bedrock override for a feature, but only the google key is set.
+    const res = await request(server)
+      .put('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        ai: {
+          providerMode: 'auto',
+          copilot: { model: 'google:gemini-3.5-flash' },
+          featureModels: { 'clinical-insight': 'bedrock:us.anthropic.claude-haiku-5' },
+        },
+        secrets: { googleApiKey: 'AQ.test-key-value-9999' },
+      })
+      .expect(400);
+    expect(res.body.message).toContain('clinical-insight');
+    expect(res.body.message).toContain('Bedrock API key');
+
+    // Chat features can never run on sarvam (voice-only REST provider).
+    const sarvam = await request(server)
+      .put('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        ai: {
+          providerMode: 'auto',
+          copilot: { model: 'google:gemini-3.5-flash' },
+          featureModels: { 'quick-asks': 'sarvam:sarvam-m' },
+        },
+        secrets: { googleApiKey: 'AQ.test-key-value-9999' },
+      })
+      .expect(400);
+    expect(sarvam.body.message).toContain('quick-asks');
+
+    // The failed updates must not have been applied.
+    const after = await request(server)
+      .get('/api/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+    expect(after.body.ai.providerMode).toBe('mock');
+    expect(after.body.ai.featureModels).toEqual({});
+  });
+
   it('validates field ranges through the shared schema', async () => {
     await request(server)
       .put('/api/settings')

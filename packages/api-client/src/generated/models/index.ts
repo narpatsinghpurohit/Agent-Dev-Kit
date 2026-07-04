@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './aiModelsResponseDtoOutput';
+export * from './aiModelsResponseDtoOutputFeaturesItem';
+export * from './aiModelsResponseDtoOutputFeaturesItemFeature';
 export * from './alertsListResponseDtoOutput';
 export * from './alertsListResponseDtoOutputItemsItem';
 export * from './alertsListResponseDtoOutputItemsItemSeverity';
@@ -114,6 +117,7 @@ export * from './resetPasswordDto';
 export * from './settingsResponseDtoOutput';
 export * from './settingsResponseDtoOutputAi';
 export * from './settingsResponseDtoOutputAiCopilot';
+export * from './settingsResponseDtoOutputAiFeatureModels';
 export * from './settingsResponseDtoOutputAiProviderMode';
 export * from './settingsResponseDtoOutputGeneral';
 export * from './settingsResponseDtoOutputSecrets';
@@ -123,6 +127,7 @@ export * from './settingsResponseDtoOutputSecretsSarvamApiKey';
 export * from './settingsUpdateDto';
 export * from './settingsUpdateDtoAi';
 export * from './settingsUpdateDtoAiCopilot';
+export * from './settingsUpdateDtoAiFeatureModels';
 export * from './settingsUpdateDtoAiProviderMode';
 export * from './settingsUpdateDtoGeneral';
 export * from './settingsUpdateDtoSecrets';

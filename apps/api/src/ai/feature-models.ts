@@ -4,6 +4,8 @@ import {
   type FeatureModelConfig,
   FeatureModelsSchema,
   ModelRefSchema,
+  type RuntimeTunableFeature,
+  RuntimeTunableFeatureSchema,
 } from '@repo/schemas';
 import type { Env } from '../config/env.schema';
 
@@ -116,18 +118,32 @@ const ENV_OVERRIDE_KEYS: Record<AiFeatureName, keyof Env> = {
 
 export type ResolvedFeatureModels = Record<AiFeatureName, FeatureModelConfig>;
 
+/** The features whose model ref the settings store may override (see schema). */
+export const RUNTIME_TUNABLE_FEATURES = RuntimeTunableFeatureSchema.options;
+
+function runtimeTunable(feature: AiFeatureName): feature is RuntimeTunableFeature {
+  return (RUNTIME_TUNABLE_FEATURES as readonly AiFeatureName[]).includes(feature);
+}
+
 export function resolveFeatureModels(input: {
   mode: 'mock' | 'auto';
   overrides: Partial<Record<AiFeatureName, string | undefined>>;
   /** Runtime-tunable copilot config from the settings store. */
   copilot?: CopilotSettings;
+  /** Per-feature model overrides from the settings store — beat env overrides. */
+  settingsOverrides?: Partial<Record<RuntimeTunableFeature, string>>;
 }): ResolvedFeatureModels {
   const resolved = {} as ResolvedFeatureModels;
 
   for (const [feature, defaults] of Object.entries(DEFAULT_FEATURE_MODELS) as Array<
     [AiFeatureName, FeatureModelConfig]
   >) {
-    const override = input.overrides[feature];
+    const envOverride = input.overrides[feature];
+    // Precedence: runtime settings (DB) > AI_MODEL_<FEATURE> env > default.
+    const settingsOverride = runtimeTunable(feature)
+      ? input.settingsOverrides?.[feature]
+      : undefined;
+    const override = settingsOverride ?? envOverride;
     let config: FeatureModelConfig = {
       ...defaults,
       ...(override ? { model: ModelRefSchema.parse(override) } : {}),
