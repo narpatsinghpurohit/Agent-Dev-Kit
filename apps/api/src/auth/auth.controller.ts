@@ -39,7 +39,7 @@ export const REFRESH_COOKIE = 'refresh_token';
 // browser will not attach the cookie.
 export const REFRESH_COOKIE_PATH = '/api/auth/refresh';
 
-const AUTH_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
+const AUTH_THROTTLE = { default: { limit: 50, ttl: 60_000 } };
 
 @ApiTags('auth')
 @Controller('auth')
