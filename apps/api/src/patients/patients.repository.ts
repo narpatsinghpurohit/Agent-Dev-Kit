@@ -8,6 +8,8 @@ import type {
   Sex,
 } from '@repo/schemas';
 import { Consultation } from '../consultations/consultation.schema';
+import { QueueEntry } from '../queue/queue-entry.schema';
+import { Vital } from '../vitals/vital.schema';
 import { Patient } from './patient.schema';
 
 export type LeanPatient = Patient & { _id: Types.ObjectId };
@@ -39,8 +41,11 @@ export class PatientsRepository {
   constructor(
     @InjectModel(Patient.name) private readonly model: Model<Patient>,
     // Cross-collection on purpose: deleting a patient must not orphan their
-    // medical records (unreachable consultations = silent record loss).
+    // medical records (unreachable consultations/vitals = silent record
+    // loss; stale queue entries = dead links on the dashboard).
     @InjectModel(Consultation.name) private readonly consultationModel: Model<Consultation>,
+    @InjectModel(QueueEntry.name) private readonly queueEntryModel: Model<QueueEntry>,
+    @InjectModel(Vital.name) private readonly vitalModel: Model<Vital>,
   ) {}
 
   async create(ownerId: Types.ObjectId, data: CreatePatientData): Promise<LeanPatient> {
@@ -119,7 +124,11 @@ export class PatientsRepository {
     const patientId = new Types.ObjectId(id);
     const result = await this.model.deleteOne({ _id: patientId, ownerId });
     if (result.deletedCount === 1) {
-      await this.consultationModel.deleteMany({ ownerId, patientId });
+      await Promise.all([
+        this.consultationModel.deleteMany({ ownerId, patientId }),
+        this.queueEntryModel.deleteMany({ ownerId, patientId }),
+        this.vitalModel.deleteMany({ ownerId, patientId }),
+      ]);
     }
     return result.deletedCount === 1;
   }

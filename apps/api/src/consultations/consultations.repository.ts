@@ -13,6 +13,10 @@ import type { TurnCapture } from './summary-extraction';
 
 export type LeanConsultation = Consultation & { _id: Types.ObjectId };
 
+/** Wire-schema turn cap (`turns: z.array(...).max(200)`) — one turn past it
+ * would fail response serialization on every future read of the record. */
+export const MAX_TURNS = 200;
+
 /**
  * Every query includes `ownerId` in the filter — ownership is a query
  * predicate, never a post-fetch check. Turn appends and completion are
@@ -59,7 +63,13 @@ export class ConsultationsRepository {
     return { items: rows.slice(0, query.limit), hasMore: rows.length > query.limit };
   }
 
-  /** Atomic append, only while the consultation is still in progress. */
+  /**
+   * Atomic append, only while the consultation is still in progress AND
+   * under the turn cap. The cap rides in the filter (`turns.199` must not
+   * exist) so concurrent appends at the boundary can never push the record
+   * past the wire schema's max — the service's read-side check alone would
+   * be check-then-act.
+   */
   async appendTurnForOwner(
     ownerId: Types.ObjectId,
     id: string,
@@ -68,7 +78,12 @@ export class ConsultationsRepository {
     if (!Types.ObjectId.isValid(id)) return null;
     return this.model
       .findOneAndUpdate(
-        { _id: new Types.ObjectId(id), ownerId, status: 'in_progress' },
+        {
+          _id: new Types.ObjectId(id),
+          ownerId,
+          status: 'in_progress',
+          [`turns.${MAX_TURNS - 1}`]: { $exists: false },
+        },
         { $push: { turns: turn } },
         { returnDocument: 'after' },
       )

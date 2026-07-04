@@ -12,9 +12,7 @@ type PlanItem = Plan['items'][number];
 
 const CATEGORY_GLYPHS: Record<TreatmentCategory, { letter: string; className: string }> = {
   herbal: { letter: 'H', className: 'bg-badge-green text-badge-green-fg' },
-  // The design's Diet square is orange — no orange badge token exists, so it
-  // rides the warn tint (nearest token-based tone).
-  ahara: { letter: 'D', className: 'bg-warn/15 text-warn' },
+  ahara: { letter: 'D', className: 'bg-badge-orange text-badge-orange-fg' },
   vihara: { letter: 'Y', className: 'bg-badge-purple text-badge-purple-fg' },
 };
 

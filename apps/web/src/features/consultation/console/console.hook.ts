@@ -23,7 +23,6 @@ import {
 } from '@repo/api-client';
 import {
   ConsultationSummarySchema,
-  LANGUAGE_NAMES,
   type ConsultationSummary,
   type FieldMeta,
   type RecommendationUpdateInput,
@@ -32,7 +31,7 @@ import {
 } from '@repo/schemas';
 import { authStore } from '../../../lib/auth';
 import { useInvalidatePatients } from '../../patients/patients-cache.hook';
-import { fieldKeyLabel, formatElapsed, formatTimeHHMM } from './format';
+import { fieldKeyLabel, formatElapsed, formatTimeHHMM, shortLanguageName } from './format';
 
 export type RightTab = 'ehr' | 'plan';
 
@@ -76,6 +75,8 @@ export function useConsole(consultationId: string) {
   const [rightTab, setRightTab] = useState<RightTab>('ehr');
   const [quickAsks, setQuickAsks] = useState<string[]>([]);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  /** True while getUserMedia is pending — blocks a second overlapping start. */
+  const startingRecorderRef = useRef(false);
   const unmountedRef = useRef(false);
 
   // Leaving the page mid-recording must release the microphone AND must not
@@ -216,19 +217,40 @@ export function useConsole(consultationId: string) {
       recorderRef.current.stop();
       return;
     }
+    // A tap while getUserMedia is still pending (permission prompt open,
+    // double-click) must not start a SECOND recorder — the losing one would
+    // have no stop path and hold the microphone until page reload.
+    if (startingRecorderRef.current) return;
     if (!navigator.mediaDevices?.getUserMedia) return;
+    startingRecorderRef.current = true;
     setError(null);
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
+      startingRecorderRef.current = false;
       setError('Microphone unavailable — check the browser permission, or type the answer.');
+      return;
+    }
+    if (unmountedRef.current) {
+      // The doctor left the page while the permission prompt was open.
+      startingRecorderRef.current = false;
+      for (const track of stream.getTracks()) track.stop();
       return;
     }
     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus'
       : 'audio/mp4';
-    const recorder = new MediaRecorder(stream, { mimeType });
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, { mimeType });
+    } catch {
+      // Construction failed — release the mic or it stays hot forever.
+      startingRecorderRef.current = false;
+      for (const track of stream.getTracks()) track.stop();
+      setError('Recording is not supported in this browser — type the answer instead.');
+      return;
+    }
     const chunks: Blob[] = [];
     recorder.ondataavailable = (event) => chunks.push(event.data);
     recorder.onstop = () => {
@@ -252,6 +274,7 @@ export function useConsole(consultationId: string) {
         });
     };
     recorderRef.current = recorder;
+    startingRecorderRef.current = false;
     setIsRecording(true);
     recorder.start();
     // Sarvam's real-time STT caps at ~30s — stop automatically before that.
@@ -260,24 +283,35 @@ export function useConsole(consultationId: string) {
     }, 28_000);
   }, [answerMutation, consultationId, refresh, requestQuickAsks]);
 
+  // One flag across the WHOLE finish flow (finish → refetch → plan): the
+  // mutation's own isPending drops while the refetch is still in flight,
+  // which would briefly re-enable the Finish button on the stale
+  // in_progress status — a second click then 400s with a false error.
+  const [isFinishing, setIsFinishing] = useState(false);
   const onFinish = useCallback(async () => {
+    if (isFinishing) return;
     setError(null);
+    setIsFinishing(true);
     try {
-      await finishMutation.mutateAsync({ id: consultationId });
-      await refresh();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not finish the consultation');
-      return;
+      try {
+        await finishMutation.mutateAsync({ id: consultationId });
+        await refresh();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'Could not finish the consultation');
+        return;
+      }
+      // Draft the treatment plan right away. Failure is non-fatal — the plan
+      // pane's empty state keeps a "Generate plan" button as the retry.
+      try {
+        await planMutation.mutateAsync({ id: consultationId });
+        await refresh();
+      } catch {
+        // tolerated — see above
+      }
+    } finally {
+      setIsFinishing(false);
     }
-    // Draft the treatment plan right away. Failure is non-fatal — the plan
-    // pane's empty state keeps a "Generate plan" button as the retry.
-    try {
-      await planMutation.mutateAsync({ id: consultationId });
-      await refresh();
-    } catch {
-      // tolerated — see above
-    }
-  }, [consultationId, finishMutation, planMutation, refresh]);
+  }, [consultationId, finishMutation, isFinishing, planMutation, refresh]);
 
   const onSaveSummary = useCallback(
     async (summary: ConsultationSummary) => {
@@ -353,8 +387,10 @@ export function useConsole(consultationId: string) {
   const vitals = vitalsQuery.data?.items ?? [];
   const latestVital = vitals[0] ?? null; // API returns newest-first
   const lastPatientTurn = consultation.turns.findLast((turn) => turn.speaker === 'patient');
-  const latestDetectedLanguage =
-    LANGUAGE_NAMES[lastPatientTurn?.sourceLanguage ?? consultation.patientLanguage];
+  // Short native form ("हिन्दी") per the design — matches the context strip.
+  const latestDetectedLanguage = shortLanguageName(
+    lastPatientTurn?.sourceLanguage ?? consultation.patientLanguage,
+  );
   const ehrFields = buildEhrFields(consultation.summary, latestVital);
 
   return {
@@ -379,7 +415,7 @@ export function useConsole(consultationId: string) {
     isRecording,
     isAsking: askMutation.isPending,
     isAnswering: answerMutation.isPending || answerTextMutation.isPending,
-    isFinishing: finishMutation.isPending,
+    isFinishing,
     isSavingSummary: summaryMutation.isPending,
     isGeneratingPlan: planMutation.isPending,
     isUpdatingPlan: recommendationMutation.isPending,

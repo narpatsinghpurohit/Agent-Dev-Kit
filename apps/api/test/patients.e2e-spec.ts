@@ -1,6 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
+import { getModelToken } from '@nestjs/mongoose';
+import { Types, type Model } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Consultation } from '../src/consultations/consultation.schema';
+import { Vital } from '../src/vitals/vital.schema';
 import { createTestApp } from './create-test-app';
 
 describe('patients (e2e)', () => {
@@ -115,6 +119,52 @@ describe('patients (e2e)', () => {
       .get(`/api/patients/${created.body.id}`)
       .set('Authorization', asAlice())
       .expect(404);
+  });
+
+  it('deleting a patient cascades to their consultations, queue entries, and vitals', async () => {
+    const created = await request(server)
+      .post('/api/patients')
+      .set('Authorization', asAlice())
+      .send({ ...valid, name: 'Cascade Me' })
+      .expect(201);
+    const patientId = created.body.id as string;
+
+    await request(server)
+      .post('/api/consultations')
+      .set('Authorization', asAlice())
+      .send({ patientId, doctorLanguage: 'en-IN' })
+      .expect(201);
+    await request(server)
+      .post('/api/queue')
+      .set('Authorization', asAlice())
+      .send({ patientId, reason: 'Follow-up' })
+      .expect(201);
+    await request(server)
+      .post(`/api/patients/${patientId}/vitals`)
+      .set('Authorization', asAlice())
+      .send({ systolic: 140, diastolic: 90, takenBy: 'doctor' })
+      .expect(201);
+
+    await request(server)
+      .delete(`/api/patients/${patientId}`)
+      .set('Authorization', asAlice())
+      .expect(204);
+
+    // The queue no longer lists the deleted patient (no dead links).
+    const queue = await request(server)
+      .get('/api/queue')
+      .set('Authorization', asAlice())
+      .expect(200);
+    expect(
+      queue.body.items.some((entry: { patientId: string }) => entry.patientId === patientId),
+    ).toBe(false);
+
+    // Nothing orphaned behind the ownership 404 either.
+    const pid = new Types.ObjectId(patientId);
+    const consultations = app.get<Model<Consultation>>(getModelToken(Consultation.name));
+    const vitals = app.get<Model<Vital>>(getModelToken(Vital.name));
+    expect(await consultations.countDocuments({ patientId: pid })).toBe(0);
+    expect(await vitals.countDocuments({ patientId: pid })).toBe(0);
   });
 
   it('paginates with cursors and searches by name', async () => {

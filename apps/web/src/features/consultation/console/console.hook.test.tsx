@@ -8,6 +8,7 @@ import { act, waitFor } from '@testing-library/react';
 import { setupServer } from 'msw/node';
 import { Suspense } from 'react';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Consultation } from '@repo/schemas';
 import { configureApiClient } from '@repo/api-client';
 import {
   getAlertsDismissMockHandler,
@@ -18,6 +19,7 @@ import {
   getConsultationsFinishMockHandler,
   getConsultationsGenerateTreatmentPlanMockHandler,
   getConsultationsGetMockHandler,
+  getConsultationsInsightMockHandler,
   getConsultationsQuickAsksMockHandler,
   getPatientsGetClinicalMockHandler,
   getPatientsGetMockHandler,
@@ -182,7 +184,7 @@ describe('useConsole', () => {
       'Confirm yoga',
     ]);
     expect(calls.filter((call) => call === 'quick-asks')).toHaveLength(1);
-    expect(vm().latestDetectedLanguage).toBe('Hindi — हिन्दी');
+    expect(vm().latestDetectedLanguage).toBe('हिन्दी');
   });
 
   it('quick-ask chips prefill the doctor question input', async () => {
@@ -238,5 +240,77 @@ describe('useConsole', () => {
     expect(calls).not.toContain('ask');
     expect(vm().error).toBeNull();
     expect(vi.isMockFunction(vm().onAsk)).toBe(false);
+  });
+
+  describe('auto-insight (every 2nd patient turn)', () => {
+    const doctorTurn2 = { ...doctorTurn, id: 'turn-3' };
+    const patientTurn2 = {
+      ...patientTurn,
+      id: 'turn-4',
+      translatedText: 'Yes, mostly in the mornings.',
+    };
+    const insightTurn = {
+      ...doctorTurn,
+      id: 'turn-insight',
+      speaker: 'vedita' as const,
+      kind: 'insight' as const,
+      isPrivate: true,
+      sourceLanguage: 'en-IN' as const,
+      targetLanguage: 'en-IN' as const,
+      sourceText: 'BP has risen across her last 3 visits.',
+      translatedText: 'BP has risen across her last 3 visits.',
+    };
+
+    function useConsultationFixture(fixture: Consultation) {
+      server.use(
+        getConsultationsGetMockHandler(fixture),
+        getConsultationsInsightMockHandler(() => {
+          calls.push('insight');
+          return fixture;
+        }),
+      );
+    }
+
+    it('requests exactly one insight once the 2nd patient turn lands', async () => {
+      useConsultationFixture({
+        ...consultation,
+        turns: [doctorTurn, patientTurn, doctorTurn2, patientTurn2],
+      });
+      await renderConsole();
+      await waitFor(() => expect(calls.filter((call) => call === 'insight')).toHaveLength(1));
+      // The refetch that follows the insight must not re-fire the rule.
+      await act(async () => undefined);
+      expect(calls.filter((call) => call === 'insight')).toHaveLength(1);
+    });
+
+    it('stays quiet on remount when the insight for this count already exists', async () => {
+      useConsultationFixture({
+        ...consultation,
+        turns: [doctorTurn, patientTurn, doctorTurn2, patientTurn2, insightTurn],
+      });
+      await renderConsole(); // quick-asks resolved → mount effects have run
+      await act(async () => undefined);
+      expect(calls).not.toContain('insight');
+    });
+
+    it('never fires once the consultation is completed', async () => {
+      useConsultationFixture({
+        ...consultation,
+        status: 'completed' as const,
+        completedAt: NOW,
+        turns: [doctorTurn, patientTurn, doctorTurn2, patientTurn2],
+      });
+      // Completed consultations request no quick-asks either, so render
+      // without the renderConsole quick-asks wait.
+      probedRef.current = null;
+      await renderWithProviders(
+        <Suspense fallback={null}>
+          <Probe />
+        </Suspense>,
+      );
+      await waitFor(() => expect(probedRef.current).not.toBeNull());
+      await act(async () => undefined);
+      expect(calls).toEqual([]);
+    });
   });
 });

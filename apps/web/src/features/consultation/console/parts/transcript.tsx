@@ -1,7 +1,6 @@
 import { Check } from 'lucide-react';
-import { LANGUAGE_NAMES } from '@repo/schemas';
 import { cn } from '../../../../lib/utils';
-import { fieldKeyLabel, initialsOf } from '../format';
+import { fieldKeyLabel, initialsOf, shortLanguageName } from '../format';
 import type { ConsoleViewModel } from '../console.hook';
 
 type Turn = ConsoleViewModel['consultation']['turns'][number];
@@ -62,8 +61,10 @@ function TurnBubble({
   const meta = isInsight
     ? 'insight for doctor · private'
     : isDoctor
-      ? `to patient · ${LANGUAGE_NAMES[turn.targetLanguage]} · spoken aloud`
-      : `patient · ${LANGUAGE_NAMES[turn.sourceLanguage]} · auto-translated`;
+      ? // Short native form ("हिन्दी") per the design — the verbose combined
+        // name would clutter every bubble header.
+        `to patient · ${shortLanguageName(turn.targetLanguage)} · spoken aloud`
+      : `patient · ${shortLanguageName(turn.sourceLanguage)} · auto-translated`;
   const showTranslation = !isInsight && turn.translatedText !== turn.sourceText;
 
   return (
@@ -74,7 +75,7 @@ function TurnBubble({
             'inline-flex size-[18px] items-center justify-center rounded-full text-[9px] font-bold',
             isInsight && 'bg-ink text-insight',
             isDoctor && 'bg-accent text-white',
-            !isInsight && !isDoctor && 'bg-warn/10 text-warn',
+            !isInsight && !isDoctor && 'bg-avatar text-avatar-fg',
           )}
         >
           {isInsight ? 'V' : initialsOf(who)}

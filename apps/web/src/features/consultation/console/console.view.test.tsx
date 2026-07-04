@@ -2,10 +2,11 @@
  * Pure view tests — props in, DOM out. No MSW, no hook mocking: the parts
  * under test render exactly what the ViewModel hands them.
  */
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { EhrField } from './console.hook';
 import { EhrPane } from './parts/ehr-pane';
+import { PlanPane } from './parts/plan-pane';
 import { Transcript } from './parts/transcript';
 
 const NOW = new Date().toISOString();
@@ -55,7 +56,7 @@ describe('Transcript', () => {
         turns={turns}
         patientName="Kamla Devi"
         doctorName="Dr. Rekha Sharma"
-        patientLanguageName="Hindi — हिन्दी"
+        patientLanguageName="हिन्दी"
       />,
     );
 
@@ -206,5 +207,85 @@ describe('EhrPane', () => {
     expect(
       screen.queryByRole('button', { name: 'Review & sign to AHMIS' }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('PlanPane', () => {
+  const item = (overrides: Record<string, unknown>) => ({
+    id: 'herbal-1',
+    category: 'herbal' as const,
+    body: 'Continue Sarpagandha vati 1 BD.',
+    evidence: 'Improved systolic control in 71% of similar patients',
+    confidence: 0.92,
+    state: 'suggested' as const,
+    editedBody: null,
+    ...overrides,
+  });
+
+  const planConsultation = {
+    id: 'c0ffee00c0ffee00c0ffee00',
+    patientId: 'a1b2c3d4e5f6a1b2c3d4e5f6',
+    status: 'completed' as const,
+    doctorLanguage: 'en-IN' as const,
+    patientLanguage: 'hi-IN' as const,
+    turns: [],
+    summary: null,
+    ahmisStatus: 'not_synced' as const,
+    ahmisSyncedAt: null,
+    treatmentPlan: {
+      rationale: 'Personalised for Vata–Kapha hypertension.',
+      items: [
+        item({}),
+        item({
+          id: 'ahara-1',
+          category: 'ahara' as const,
+          body: 'Reduce salt.',
+          state: 'modified' as const,
+          editedBody: 'Salt under 5 g/day; warm khichdi evenings.',
+        }),
+      ],
+      cohortSize: 1248,
+      generatedAt: NOW,
+    },
+    createdAt: NOW,
+    updatedAt: NOW,
+    completedAt: NOW,
+  };
+
+  function renderPane(onRecommendationUpdate: (...args: unknown[]) => Promise<void>) {
+    return render(
+      <PlanPane
+        consultation={planConsultation}
+        isGeneratingPlan={false}
+        isUpdatingPlan={false}
+        onGeneratePlan={async () => undefined}
+        onRecommendationUpdate={onRecommendationUpdate}
+      />,
+    );
+  }
+
+  it('modify flow: edits the body and submits (recId, "modified", edited text)', () => {
+    const updates: unknown[][] = [];
+    renderPane(async (...args) => {
+      updates.push(args);
+    });
+
+    // Only the suggested item still offers Modify.
+    fireEvent.click(screen.getByRole('button', { name: 'Modify' }));
+    const textarea = screen.getByRole('textbox', { name: 'Modify Herbal recommendation' });
+    fireEvent.change(textarea, { target: { value: 'Arjuna churna 3 g at night instead.  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(updates).toEqual([['herbal-1', 'modified', 'Arjuna churna 3 g at night instead.']]);
+  });
+
+  it('renders editedBody (not the original body) for modified items, with the state chip', () => {
+    renderPane(async () => undefined);
+
+    expect(screen.getByText('Salt under 5 g/day; warm khichdi evenings.')).toBeInTheDocument();
+    expect(screen.queryByText('Reduce salt.')).not.toBeInTheDocument();
+    expect(screen.getByText('Modified')).toBeInTheDocument();
+    // The cohort rationale banner quotes the panel size.
+    expect(screen.getByText('1,248 similar patients')).toBeInTheDocument();
   });
 });

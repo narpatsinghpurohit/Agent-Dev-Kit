@@ -13,7 +13,14 @@ function trendToneClass(direction: 'up' | 'down' | 'flat', metric: string): stri
   return 'text-ok';
 }
 
-const trendArrow = { up: '↑', down: '↓', flat: '→' } as const;
+/**
+ * Up/down labels embed their arrow server-side (`↑ 3 visits rising`) —
+ * render them verbatim, never prepend a second glyph. Only the flat label
+ * (`stable`, arrow-free per the wire contract) gets one here.
+ */
+function trendText(trend: { direction: 'up' | 'down' | 'flat'; label: string }): string {
+  return trend.direction === 'flat' ? `→ ${trend.label}` : trend.label;
+}
 
 /** Left column: identity, prakriti/conditions, vitals + trends, regimen, queue. */
 export function PatientPanel({
@@ -31,7 +38,7 @@ export function PatientPanel({
     <aside className="flex w-[272px] flex-none flex-col border-r border-edge bg-panel">
       <div className="flex flex-col gap-3 p-4 pb-0">
         <div className="flex items-center gap-3">
-          <span className="flex size-11 flex-none items-center justify-center rounded-full bg-warn/10 text-[15px] font-semibold text-warn">
+          <span className="flex size-11 flex-none items-center justify-center rounded-full bg-avatar text-[15px] font-semibold text-avatar-fg">
             {initialsOf(patient?.name ?? '')}
           </span>
           <div className="min-w-0">
@@ -76,7 +83,7 @@ export function PatientPanel({
             </div>
             {bpTrend ? (
               <div className={cn('text-[11px]', trendToneClass(bpTrend.direction, 'bp'))}>
-                {trendArrow[bpTrend.direction]} {bpTrend.label}
+                {trendText(bpTrend)}
               </div>
             ) : null}
           </div>
@@ -87,7 +94,7 @@ export function PatientPanel({
             </div>
             {weightTrend ? (
               <div className={cn('text-[11px]', trendToneClass(weightTrend.direction, 'weight'))}>
-                {trendArrow[weightTrend.direction]} {weightTrend.label}
+                {trendText(weightTrend)}
               </div>
             ) : null}
           </div>

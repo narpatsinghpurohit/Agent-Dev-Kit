@@ -41,7 +41,11 @@ import { PatientsService } from '../patients/patients.service';
 import { VitalsService } from '../vitals/vitals.service';
 import { type CohortStats, CohortStatsService, formatCohortLine } from './cohort-stats.service';
 import type { ConsultationTurn } from './consultation.schema';
-import { ConsultationsRepository, type LeanConsultation } from './consultations.repository';
+import {
+  ConsultationsRepository,
+  MAX_TURNS,
+  type LeanConsultation,
+} from './consultations.repository';
 import {
   ExtractionEnvelopeSchema,
   mapExtraction,
@@ -192,7 +196,9 @@ export class ConsultationsService {
 
   /** Finish: draft the structured summary from the doctor-language transcript. */
   async finish(ownerId: string, id: string): Promise<ConsultationDto> {
-    const consultation = await this.requireInProgress(ownerId, id);
+    // forAppend: false — finish appends nothing, and it must stay reachable
+    // at the turn cap (it is the way OUT of a capped consultation).
+    const consultation = await this.requireInProgress(ownerId, id, { forAppend: false });
     if (consultation.turns.length === 0) {
       throw new BadRequestException('Nothing to summarize — the consultation has no turns');
     }
@@ -230,6 +236,13 @@ export class ConsultationsService {
       id,
     );
     if (!current) throw new NotFoundException('Consultation not found');
+    // State violations are 400s (matching finish/appendTurn), never a 404
+    // for a record this handler just read. Status only ever moves
+    // in_progress → completed, so past this check the guarded update can
+    // only miss when the record is genuinely gone.
+    if (current.status !== 'completed') {
+      throw new BadRequestException('Finish the consultation before editing the summary');
+    }
     const rewritten = rewriteManualProvenance(summary, current.summary ?? null);
     const updated = await this.consultationsRepository.updateSummaryForOwner(
       new Types.ObjectId(ownerId),
@@ -461,12 +474,16 @@ export class ConsultationsService {
       turn,
     );
     if (!updated) {
-      // Distinguish "finished under us" (race with finish → 400, matching
-      // the sequential path) from genuinely gone (→ 404).
+      // Distinguish "hit the cap under us" and "finished under us" (races
+      // with a concurrent append/finish → 400, matching the sequential
+      // paths) from genuinely gone (→ 404).
       const current = await this.consultationsRepository.findByIdForOwner(
         new Types.ObjectId(ownerId),
         id,
       );
+      if (current?.status === 'in_progress' && current.turns.length >= MAX_TURNS) {
+        throw new BadRequestException('Turn limit reached — finish this consultation');
+      }
       if (current) throw new BadRequestException('This consultation is already completed');
       throw new NotFoundException('Consultation not found');
     }
@@ -488,8 +505,9 @@ export class ConsultationsService {
     }
     // The wire schema caps turns at 200 — enforce it at the boundary so a
     // marathon session degrades with a 400, not an unreadable record.
-    // Read-only calls (quick-asks) opt out — they append nothing.
-    if ((options.forAppend ?? true) && consultation.turns.length >= 200) {
+    // Non-appending calls (quick-asks, finish) opt out — finish especially
+    // MUST stay reachable at the cap, or the record could never complete.
+    if ((options.forAppend ?? true) && consultation.turns.length >= MAX_TURNS) {
       throw new BadRequestException('Turn limit reached — finish this consultation');
     }
     return consultation;

@@ -28,6 +28,16 @@
   --color-badge-green-fg: #15803d;
   --color-badge-purple: #f3e8ff;
   --color-badge-purple-fg: #7e22ce;
+  --color-badge-orange: #ffedd5;
+  --color-badge-orange-fg: #c2410c;
+  /* Outbreak/early-warning banner — warm orange, distinct from the amber
+     `warn` confidence tone. */
+  --color-alert: #fff7ed;
+  --color-alert-border: #fdba74;
+  --color-alert-fg: #9a3412;
+  /* Patient avatar — the design's warm skin tone, again not `warn`. */
+  --color-avatar: #fef3ec;
+  --color-avatar-fg: #c2622e;
 
   /* shadcn vocabulary aliases so vendored ui/ components work unmodified.
      Deliberately NO "accent" pair here — our accent IS the violet primary;

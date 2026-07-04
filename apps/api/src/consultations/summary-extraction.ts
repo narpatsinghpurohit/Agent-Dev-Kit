@@ -93,7 +93,11 @@ function speakerLabel(turn: ConsultationTurn): string {
 }
 
 function turnText(turn: ConsultationTurn): string {
-  return turn.speaker === 'patient' ? turn.translatedText : turn.sourceText;
+  const text = turn.speaker === 'patient' ? turn.translatedText : turn.sourceText;
+  // Transcripts are one line per turn. Collapse embedded newlines so a
+  // stored turn (typed answers, STT/translation output) can never render
+  // as extra speaker-attributed lines in the model context.
+  return text.replace(/\s*[\r\n]+\s*/g, ' ');
 }
 
 /**

@@ -1,9 +1,9 @@
 import { TriangleAlert } from 'lucide-react';
-import { LANGUAGE_NAMES } from '@repo/schemas';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 import type { ConsoleViewModel, RightTab } from './console.hook';
+import { shortLanguageName } from './format';
 import { Composer } from './parts/composer';
 import { ContextStrip } from './parts/context-strip';
 import { EhrPane } from './parts/ehr-pane';
@@ -49,7 +49,7 @@ export function ConsoleView(viewModel: ConsoleViewModel) {
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface">
           {topAlert ? (
-            <div className="mx-5 mt-3 flex items-center gap-2.5 rounded-md border border-warn/40 bg-warn/10 px-3.5 py-2 text-[12.5px] text-warn">
+            <div className="mx-5 mt-3 flex items-center gap-2.5 rounded-md border border-alert-border bg-alert px-3.5 py-2 text-[12.5px] text-alert-fg">
               <TriangleAlert aria-hidden className="size-[15px] flex-none" />
               <span className="flex-1">
                 <strong className="font-semibold">{topAlert.title}</strong> · {topAlert.detail}
@@ -94,7 +94,7 @@ export function ConsoleView(viewModel: ConsoleViewModel) {
             turns={consultation.turns}
             patientName={patient?.name ?? 'Patient'}
             doctorName={viewModel.doctorName}
-            patientLanguageName={LANGUAGE_NAMES[consultation.patientLanguage]}
+            patientLanguageName={shortLanguageName(consultation.patientLanguage)}
           />
 
           {error ? (

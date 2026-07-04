@@ -1,6 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
+import { getModelToken } from '@nestjs/mongoose';
+import { Types, type Model } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Consultation } from '../src/consultations/consultation.schema';
+import { ConsultationsRepository } from '../src/consultations/consultations.repository';
 import { createTestApp } from './create-test-app';
 
 /**
@@ -279,6 +283,100 @@ describe('consultations — vedita (e2e, mock provider)', () => {
         .expect(200);
       expect(again.body.ahmisStatus).toBe('synced');
       expect(again.body.ahmisSyncedAt).toBe(signed.body.ahmisSyncedAt);
+    });
+  });
+
+  it('updateSummary 400s (not 404) while the consultation is still in progress', async () => {
+    const id = await startConsultation();
+    const res = await request(server)
+      .patch(`/api/consultations/${id}/summary`)
+      .set('Authorization', asDoctor())
+      .send({
+        chiefComplaint: 'Too early',
+        symptoms: [],
+        history: '',
+        medications: [],
+        allergies: [],
+        redFlags: [],
+        additionalNotes: '',
+      })
+      .expect(400);
+    expect(res.body.message).toContain('Finish the consultation');
+  });
+
+  describe('the 200-turn cap', () => {
+    /** Start a consultation, then seed it to exactly the cap via the model. */
+    async function cappedConsultation(): Promise<string> {
+      const id = await startConsultation();
+      const model = app.get<Model<Consultation>>(getModelToken(Consultation.name));
+      const turns = Array.from({ length: 200 }, (_, i) => ({
+        id: `turn_${i}`,
+        speaker: i % 2 === 0 ? 'doctor' : 'patient',
+        kind: 'utterance',
+        isPrivate: false,
+        sourceLanguage: i % 2 === 0 ? 'en-IN' : 'hi-IN',
+        targetLanguage: i % 2 === 0 ? 'hi-IN' : 'en-IN',
+        sourceText: `text ${i}`,
+        translatedText: `text ${i}`,
+        capturedFields: [],
+        at: new Date(),
+      }));
+      await model.updateOne({ _id: new Types.ObjectId(id) }, { $set: { turns } });
+      return id;
+    }
+
+    it('400s appends (ask/insight), keeps quick-asks working, and never blocks finish', async () => {
+      const id = await cappedConsultation();
+
+      const asked = await request(server)
+        .post(`/api/consultations/${id}/ask`)
+        .set('Authorization', asDoctor())
+        .send({ text: 'One more question?' })
+        .expect(400);
+      expect(asked.body.message).toContain('Turn limit reached');
+
+      await request(server)
+        .post(`/api/consultations/${id}/insight`)
+        .set('Authorization', asDoctor())
+        .expect(400);
+
+      // quick-asks appends nothing — the cap must not apply.
+      const quickAsks = await request(server)
+        .post(`/api/consultations/${id}/quick-asks`)
+        .set('Authorization', asDoctor())
+        .expect(200);
+      expect(quickAsks.body.questions).toHaveLength(3);
+
+      // The atomic backstop: even a raw repository append (as a lost
+      // check-then-act race would issue) matches nothing at the cap, so
+      // the record can never outgrow the wire schema.
+      const repository = app.get(ConsultationsRepository);
+      const doc = await app
+        .get<Model<Consultation>>(getModelToken(Consultation.name))
+        .findById(new Types.ObjectId(id))
+        .lean();
+      const raced = await repository.appendTurnForOwner(doc!.ownerId, id, {
+        id: 'turn_racer',
+        speaker: 'doctor',
+        kind: 'utterance',
+        isPrivate: false,
+        sourceLanguage: 'en-IN',
+        targetLanguage: 'hi-IN',
+        sourceText: 'racing append',
+        translatedText: 'racing append',
+        capturedFields: [],
+        at: new Date(),
+      });
+      expect(raced).toBeNull();
+
+      // Finish is the way OUT of a capped consultation — never blocked.
+      const finished = await request(server)
+        .post(`/api/consultations/${id}/finish`)
+        .set('Authorization', asDoctor())
+        .expect(200);
+      expect(finished.body.status).toBe('completed');
+      expect(finished.body.turns).toHaveLength(200);
+      expect(finished.body.summary).toBeTruthy();
     });
   });
 
